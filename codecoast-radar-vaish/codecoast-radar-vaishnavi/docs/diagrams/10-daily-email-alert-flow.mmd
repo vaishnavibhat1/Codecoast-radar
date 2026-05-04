@@ -1,0 +1,42 @@
+---
+config:
+  theme: default
+title: Daily Email Alert Flow
+---
+flowchart TD
+    CRON[Cron Job<br/>Daily at 9:00 AM] --> GET_USERS[Get All Active Users<br/>with Email Enabled]
+    
+    GET_USERS --> LOOP[Loop Through Users]
+    
+    LOOP --> GET_JOBS[Get New Jobs<br/>Last 24 Hours]
+    
+    GET_JOBS --> MATCH[Match Jobs with User Profile]
+    
+    MATCH --> FILTER[Filter Top 5 Matches]
+    
+    FILTER --> CHECK{Any Matches?}
+    
+    CHECK -->|No| SKIP[Skip User]
+    CHECK -->|Yes| BUILD_EMAIL[Build Email HTML<br/>Job Cards, Match Scores]
+    
+    BUILD_EMAIL --> PERSONALIZE[Personalize Email<br/>Hi name, 5 new React jobs]
+    
+    PERSONALIZE --> SEND[Send Email via Nodemailer]
+    
+    SEND --> SUCCESS{Email Sent?}
+    
+    SUCCESS -->|Yes| LOG_SUCCESS[Log: Email Sent]
+    SUCCESS -->|No| LOG_ERROR[Log: Email Failed]
+    
+    LOG_SUCCESS --> NEXT[Next User]
+    LOG_ERROR --> NEXT
+    SKIP --> NEXT
+    
+    NEXT --> MORE{More Users?}
+    MORE -->|Yes| LOOP
+    MORE -->|No| SUMMARY[Log Summary<br/>Emails Sent: 234<br/>Failed: 3]
+    
+    SUMMARY --> DONE([Done])
+    
+    style SEND fill:#4fc3f7
+    style SUMMARY fill:#81c784

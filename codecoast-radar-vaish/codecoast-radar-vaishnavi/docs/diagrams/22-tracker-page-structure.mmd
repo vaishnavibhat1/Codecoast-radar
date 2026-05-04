@@ -1,0 +1,63 @@
+---
+config:
+  theme: default
+title: Tracker Page Structure
+---
+graph TB
+    subgraph "Tracker.jsx"
+        CONTAINER[Page Container]
+        
+        subgraph "Header"
+            TITLE_H[Applications Tracker]
+            ADD_BTN[+ Add Application]
+            EXPORT_T[Export Data]
+        end
+        
+        subgraph "Status Filters"
+            ALL[All • 45]
+            APPLIED[Applied • 20]
+            SHORTLISTED[Shortlisted • 10]
+            INTERVIEW[Interview • 8]
+            OFFER[Offer • 2]
+            REJECTED[Rejected • 5]
+        end
+        
+        subgraph "Date Filters"
+            DATE_RANGE[Date Range Picker]
+            QUICK_DATES[This Week / Month / All Time]
+        end
+        
+        subgraph "Applications List"
+            APP_CARD1[Application Card 1]
+            APP_CARD2[Application Card 2]
+            APP_CARD3[Application Card 3]
+            APP_MORE[...]
+        end
+        
+        subgraph "Application Card"
+            APP_HEADER[Company Logo + Title]
+            APP_META[Company • Location • Date]
+            APP_STATUS[Status Badge<br/>Color-coded]
+            APP_PROGRESS[Progress Bar<br/>FSM Visualization]
+            APP_TIMELINE[Status History<br/>Applied → Shortlisted]
+            APP_ACTIONS[Update / Interview / Delete]
+            APP_NOTES[Notes Preview<br/>Expandable]
+        end
+        
+        subgraph "Side Panel - Analytics"
+            PANEL_STATS[Quick Stats<br/>Response Rate, Success Rate]
+            PANEL_CHART[Mini Chart<br/>Status Distribution]
+            PANEL_TIPS[Tips & Insights]
+        end
+    end
+    
+    CONTAINER --> TITLE_H & ADD_BTN & EXPORT_T
+    CONTAINER --> ALL & APPLIED & SHORTLISTED & INTERVIEW & OFFER & REJECTED
+    CONTAINER --> DATE_RANGE & QUICK_DATES
+    CONTAINER --> APP_CARD1 & APP_CARD2 & APP_CARD3 & APP_MORE
+    APP_CARD1 -.Example.-> APP_HEADER & APP_META & APP_STATUS & APP_PROGRESS & APP_TIMELINE & APP_ACTIONS & APP_NOTES
+    CONTAINER --> PANEL_STATS & PANEL_CHART & PANEL_TIPS
+    
+    style CONTAINER fill:#ffe0b2
+    style APP_STATUS fill:#7986cb
+    style PANEL_TIPS fill:#81c784

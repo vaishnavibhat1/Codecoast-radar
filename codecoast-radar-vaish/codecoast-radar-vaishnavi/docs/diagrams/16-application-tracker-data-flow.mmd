@@ -1,0 +1,59 @@
+---
+config:
+  theme: default
+title: Application Tracker Data Flow
+---
+flowchart TD
+    USER[User Action<br/>Track Application] --> FORM[Application Form]
+    
+    FORM --> INPUT_TYPE{Input Type}
+    
+    INPUT_TYPE -->|Select Job| SELECT[Select from DB<br/>Scraped Jobs]
+    INPUT_TYPE -->|Manual Entry| MANUAL[Enter Job Details<br/>Title, Company, URL]
+    
+    SELECT --> GET_JOB[Fetch Job Details<br/>MongoDB Jobs Collection]
+    GET_JOB --> POPULATE[Populate Form<br/>Auto-fill Fields]
+    
+    MANUAL --> EMPTY_FORM[Empty Form<br/>Manual Entry Mode]
+    
+    POPULATE --> FILL_DETAILS[User Fills Details<br/>Date, Resume, Notes]
+    EMPTY_FORM --> FILL_DETAILS
+    
+    FILL_DETAILS --> SUBMIT[Submit Form<br/>POST /api/tracker/applications]
+    
+    SUBMIT --> VALIDATE[Validate Data<br/>Required Fields, Dates]
+    
+    VALIDATE -->|Invalid| ERROR[Show Validation Errors]
+    ERROR --> FORM
+    
+    VALIDATE -->|Valid| CREATE[Create Application Document]
+    
+    CREATE --> SET_STATUS[Set Initial Status<br/>status: 'applied']
+    SET_STATUS --> SET_HISTORY[Initialize Status History<br/>statusHistory: applied]
+    SET_HISTORY --> SET_DATES[Set Timestamps<br/>appliedDate, createdAt]
+    
+    SET_DATES --> SAVE_DB[Save to MongoDB<br/>Applications Collection]
+    
+    SAVE_DB --> REF_USER[Reference User<br/>user: userId]
+    REF_USER --> REF_JOB[Reference Job<br/>job: jobId or null]
+    
+    REF_JOB --> INDEX[Update Indexes<br/>user, status, date]
+    
+    INDEX --> EMIT[Emit Socket Event<br/>applicationCreated]
+    
+    EMIT --> NOTIFY_CLIENT[Notify Client<br/>Real-time Update]
+    
+    NOTIFY_CLIENT --> ANALYTICS[Update Analytics Cache<br/>Total Applications++]
+    
+    ANALYTICS --> RESPONSE[Return Success Response<br/>Application Object]
+    
+    RESPONSE --> UI_UPDATE[Update UI<br/>Show in Applications List]
+    
+    UI_UPDATE --> SCHEDULE_CHECK[Schedule Follow-up Check<br/>Set followUpDate]
+    
+    SCHEDULE_CHECK --> END([End])
+    
+    style USER fill:#81c784
+    style SAVE_DB fill:#45b7d1
+    style EMIT fill:#f9ca24
+    style END fill:#81c784

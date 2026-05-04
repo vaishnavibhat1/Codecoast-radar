@@ -1,0 +1,60 @@
+---
+config:
+  theme: default
+title: Application Tracker Flow
+---
+flowchart TD
+    START([Tracker Page]) --> ACTION{Action}
+    
+    ACTION -->|New Application| ADD_APP[Add Application Modal]
+    ACTION -->|View Applications| LIST[View Applications List]
+    ACTION -->|Analytics| ANALYTICS[View Analytics Dashboard]
+    
+    ADD_APP --> CHOOSE{Job Source}
+    CHOOSE -->|From Database| SELECT_JOB[Select from Scraped Jobs]
+    CHOOSE -->|Manual Entry| MANUAL[Enter Job Details Manually]
+    
+    SELECT_JOB --> FILL_DETAILS[Fill Application Details<br/>Date, Resume Version, Notes]
+    MANUAL --> FILL_DETAILS
+    
+    FILL_DETAILS --> SUBMIT[API: POST /api/tracker/applications]
+    SUBMIT --> SAVE_DB[Save to MongoDB<br/>Status: Applied]
+    SAVE_DB --> LIST
+    
+    LIST --> APP_ACTION{Application Action}
+    
+    APP_ACTION -->|Update Status| STATUS_MODAL[Status Update Modal]
+    APP_ACTION -->|Add Interview| INTERVIEW_MODAL[Interview Details Modal]
+    APP_ACTION -->|Follow-up| FOLLOWUP[Mark Follow-up Sent]
+    APP_ACTION -->|Edit| EDIT[Edit Application]
+    APP_ACTION -->|Delete| DELETE[Delete Application]
+    
+    STATUS_MODAL --> VALIDATE{Valid Transition?}
+    VALIDATE -->|Yes| UPDATE[API: PUT /api/tracker/applications/:id/status]
+    VALIDATE -->|No| ERROR[Show Error<br/>Invalid State Transition]
+    ERROR --> STATUS_MODAL
+    
+    UPDATE --> UPDATE_DB[Update Database<br/>Add to Status History]
+    UPDATE_DB --> CHECK_STATUS{New Status}
+    
+    CHECK_STATUS -->|Interview| SCHEDULE[Prompt: Schedule Interview]
+    CHECK_STATUS -->|Offer| CELEBRATE[Show Celebration 🎉]
+    CHECK_STATUS -->|Rejected| FEEDBACK[Prompt: Add Feedback]
+    CHECK_STATUS -->|Other| LIST
+    
+    SCHEDULE --> INTERVIEW_MODAL
+    INTERVIEW_MODAL --> ADD_INT[API: POST /api/tracker/applications/:id/interview]
+    ADD_INT --> LIST
+    
+    CELEBRATE --> LIST
+    FEEDBACK --> LIST
+    
+    FOLLOWUP --> MARK[API: POST /api/tracker/applications/:id/follow-up]
+    MARK --> LIST
+    
+    ANALYTICS --> CHARTS[Show Charts<br/>Status Breakdown, Success Rate]
+    CHARTS --> INSIGHTS[Show Insights<br/>Response Rate, Avg Time]
+    
+    style START fill:#81c784
+    style ERROR fill:#ef5350
+    style CELEBRATE fill:#ffd54f

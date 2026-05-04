@@ -1,0 +1,96 @@
+---
+config:
+  theme: default
+title: Subscription Payment Sequence
+---
+sequenceDiagram
+    actor User
+    participant SubPage
+    participant API
+    participant Backend
+    participant Stripe
+    participant MongoDB
+    participant EmailService
+    
+    %% View Subscription Plans
+    Note over User,EmailService: View Plans
+    User->>SubPage: Navigate to /subscription
+    SubPage->>API: GET /api/subscriptions/plans
+    API->>Backend: Fetch available plans
+    Backend-->>API: Free, Pro, Enterprise plans
+    API-->>SubPage: Plans data
+    SubPage->>User: Display pricing cards
+    
+    %% Initiate Upgrade to Pro
+    Note over User,EmailService: Upgrade to Pro
+    User->>SubPage: Click "Upgrade to Pro"
+    SubPage->>API: POST /api/subscriptions/create-checkout
+    API->>Backend: {plan: "pro"}
+    Backend->>Backend: Verify user not already Pro
+    Backend->>Stripe: Create checkout session
+    Stripe-->>Backend: Session with sessionId & URL
+    Backend->>MongoDB: Save pending subscription
+    MongoDB-->>Backend: Saved
+    Backend-->>API: 200 OK + checkout URL
+    API-->>SubPage: Redirect URL
+    SubPage->>User: Redirect to Stripe Checkout
+    
+    %% Stripe Checkout Flow
+    Note over User,EmailService: Stripe Payment Flow
+    User->>Stripe: Enter payment details
+    Stripe->>Stripe: Validate card information
+    Stripe->>Stripe: Process payment
+    alt Payment successful
+        Stripe->>User: Show success page
+        Stripe->>Backend: Webhook: checkout.session.completed
+        Backend->>Backend: Verify webhook signature
+        Backend->>MongoDB: Update user subscription:<br/>tier: "pro"<br/>startDate: now<br/>endDate: +1 month
+        MongoDB-->>Backend: User updated
+        Backend->>EmailService: Send confirmation email
+        EmailService-->>Backend: Email queued
+        Backend-->>Stripe: 200 OK webhook received
+        User->>SubPage: Return to app
+        SubPage->>API: GET /api/subscriptions/status
+        API->>Backend: Check subscription
+        Backend->>MongoDB: Get user subscription
+        MongoDB-->>Backend: Pro tier active
+        Backend-->>API: 200 OK + subscription data
+        API-->>SubPage: Update UI
+        SubPage->>User: Show Pro features unlocked
+    else Payment failed
+        Stripe->>User: Show error page
+        Stripe->>Backend: Webhook: checkout.session.failed
+        Backend->>MongoDB: Mark subscription as failed
+        MongoDB-->>Backend: Updated
+        Backend-->>Stripe: 200 OK
+        User->>SubPage: Return to app
+        SubPage->>User: Show payment error
+    end
+    
+    %% Cancel Subscription
+    Note over User,EmailService: Cancel Subscription
+    User->>SubPage: Click "Cancel Subscription"
+    SubPage->>User: Show confirmation dialog
+    User->>SubPage: Confirm cancellation
+    SubPage->>API: POST /api/subscriptions/cancel
+    API->>Backend: Cancel request
+    Backend->>Stripe: Cancel subscription in Stripe
+    Stripe-->>Backend: Subscription cancelled
+    Backend->>MongoDB: Update subscription:<br/>status: "cancelled"<br/>cancelledAt: now
+    MongoDB-->>Backend: Updated
+    Backend->>EmailService: Send cancellation confirmation
+    EmailService-->>Backend: Email sent
+    Backend-->>API: 200 OK
+    API-->>SubPage: Update UI
+    SubPage->>User: Show cancellation confirmation
+    
+    %% View Subscription History
+    Note over User,EmailService: View Payment History
+    User->>SubPage: Click "Payment History"
+    SubPage->>API: GET /api/subscriptions/history
+    API->>Backend: Fetch user's payments
+    Backend->>MongoDB: Find payment documents
+    MongoDB-->>Backend: Payment history
+    Backend-->>API: 200 OK + payments array
+    API-->>SubPage: Display history
+    SubPage->>User: Show table with invoices

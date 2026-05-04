@@ -1,0 +1,57 @@
+---
+config:
+  theme: default
+title: CodeCoast Radar - Level 2 DFD (Job Matching & Ranking)
+---
+flowchart TB
+    %% External Entities
+    USER([IT Professional])
+    
+    %% Data Stores
+    USER_DB[("D1: User Database")]
+    JOB_DB[("D2: Job Database")]
+    SKILL_DB[("D6: Skill Database")]
+    LOCATION_DB[("D7: Location Database")]
+    
+    %% Level 2 Processes for Job Matching (Process 3)
+    P3_1["3.1<br/>Parse Search Query<br/>(NLP Tokenization)"]
+    P3_2["3.2<br/>Extract User Skills<br/>& Preferences"]
+    P3_3["3.3<br/>Retrieve Candidate<br/>Jobs"]
+    P3_4["3.4<br/>Calculate Match Score<br/>(NLP Algorithm)"]
+    P3_5["3.5<br/>Apply Geo-Fencing<br/>(50km Mangalore)"]
+    P3_6["3.6<br/>Rank Jobs<br/>by Score"]
+    P3_7["3.7<br/>Format & Return<br/>Results"]
+    
+    %% Flow
+    USER -->|Search Query| P3_1
+    P3_1 -->|Parsed Keywords| P3_2
+    
+    USER_DB -->|User Profile| P3_2
+    SKILL_DB -->|User Skills| P3_2
+    P3_2 -->|User Requirements| P3_4
+    
+    P3_1 -->|Search Criteria| P3_3
+    JOB_DB -->|Available Jobs| P3_3
+    P3_3 -->|Candidate Jobs| P3_4
+    
+    P3_4 -->|Jobs with Scores| P3_5
+    LOCATION_DB -->|User Location| P3_5
+    JOB_DB -->|Job Locations| P3_5
+    
+    P3_5 -->|Filtered Jobs| P3_6
+    P3_6 -->|Sorted Jobs| P3_7
+    
+    P3_4 -->|Update Score| JOB_DB
+    
+    P3_7 -->|Match Results<br/>92% Wipro<br/>89% TCS| USER
+    
+    %% Styling
+    style P3_1 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style P3_2 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style P3_3 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style P3_4 fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px
+    style P3_5 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style P3_6 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style P3_7 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    
+    style USER fill:#2196F3,stroke:#1565C0,stroke-width:2px

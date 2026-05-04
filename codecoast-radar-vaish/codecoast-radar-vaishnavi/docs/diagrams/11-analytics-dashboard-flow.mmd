@@ -1,0 +1,58 @@
+---
+config:
+  theme: default
+title: Analytics Dashboard Flow
+---
+flowchart TD
+    START([Analytics Page]) --> LOAD[Load Analytics Data]
+    
+    LOAD --> API1[API: GET /api/jobs/stats/overview]
+    LOAD --> API2[API: GET /api/alerts/trends]
+    LOAD --> API3[API: GET /api/alerts/spikes]
+    LOAD --> API4[API: GET /api/tracker/analytics<br/>User's Application Stats]
+    
+    API1 --> PROCESS1[Process Job Market Stats<br/>Total Jobs, New Jobs, Top Skills]
+    API2 --> PROCESS2[Process Skill Trends<br/>Growth Percentages]
+    API3 --> PROCESS3[Process Hiring Spikes<br/>Company Activity]
+    API4 --> PROCESS4[Process Application Stats<br/>Success Rate, Response Rate]
+    
+    PROCESS1 --> CHARTS[Render Charts]
+    PROCESS2 --> CHARTS
+    PROCESS3 --> CHARTS
+    PROCESS4 --> CHARTS
+    
+    CHARTS --> CHART1[📊 Skill Demand Chart<br/>Bar Chart - Recharts]
+    CHARTS --> CHART2[📈 Salary Trends<br/>Line Chart - Recharts]
+    CHARTS --> CHART3[🏢 Top Companies<br/>Pie Chart - Recharts]
+    CHARTS --> CHART4[📅 Application Timeline<br/>Area Chart - Recharts]
+    CHARTS --> CHART5[🎯 Status Breakdown<br/>Donut Chart - Recharts]
+    
+    CHART1 --> INSIGHTS[Generate Insights]
+    CHART2 --> INSIGHTS
+    CHART3 --> INSIGHTS
+    CHART4 --> INSIGHTS
+    CHART5 --> INSIGHTS
+    
+    INSIGHTS --> SHOW1[💡 React jobs up 18% this week]
+    INSIGHTS --> SHOW2[💡 Wipro hiring spike detected]
+    INSIGHTS --> SHOW3[💡 Your response rate: 67%]
+    INSIGHTS --> SHOW4[💡 Avg salary: ₹6.5L in Mangalore]
+    
+    SHOW1 --> INTERACT{User Interaction}
+    SHOW2 --> INTERACT
+    SHOW3 --> INTERACT
+    SHOW4 --> INTERACT
+    
+    INTERACT -->|Click Skill| FILTER_JOBS[Filter Jobs by Skill]
+    INTERACT -->|Click Company| FILTER_COMPANY[Filter Jobs by Company]
+    INTERACT -->|Download| EXPORT[Export Data<br/>Excel/CSV]
+    INTERACT -->|Refresh| LOAD
+    
+    FILTER_JOBS --> JOBS_PAGE([Jobs Page])
+    FILTER_COMPANY --> JOBS_PAGE
+    EXPORT --> DOWNLOAD[Download File]
+    DOWNLOAD --> START
+    
+    style START fill:#81c784
+    style INSIGHTS fill:#ffd54f
+    style JOBS_PAGE fill:#64b5f6

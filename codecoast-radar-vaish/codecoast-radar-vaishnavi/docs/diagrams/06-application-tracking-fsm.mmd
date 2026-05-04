@@ -1,0 +1,40 @@
+---
+config:
+  theme: default
+title: Application Tracking FSM
+---
+stateDiagram-v2
+    [*] --> Applied: User tracks application
+    
+    Applied --> Shortlisted: Receives callback
+    Applied --> Rejected: No response
+    Applied --> Withdrawn: User withdraws
+    
+    Shortlisted --> Interview: Interview scheduled
+    Shortlisted --> Rejected: Rejected after screening
+    Shortlisted --> Withdrawn: User withdraws
+    
+    Interview --> Offer: Receives job offer
+    Interview --> Rejected: Failed interview
+    Interview --> Withdrawn: User withdraws
+    
+    Offer --> Withdrawn: Declined offer
+    Offer --> [*]: Accepted (End state)
+    
+    Rejected --> [*]
+    Withdrawn --> [*]
+    
+    note right of Applied
+        Initial state when user
+        tracks a job application
+    end note
+    
+    note right of Interview
+        Can add multiple interview
+        rounds with dates & notes
+    end note
+    
+    note right of Offer
+        Final positive state
+        before acceptance
+    end note

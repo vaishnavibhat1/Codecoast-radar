@@ -1,0 +1,176 @@
+---
+config:
+  theme: default
+title: CodeCoast Radar - Database ER Diagram
+---
+erDiagram
+    %% Core Relationships (1:1 and 1:N)
+    USER ||--|| SUBSCRIPTION : has
+    USER ||--o{ APPLICATION : submits
+    USER ||--o{ ALERT : receives
+    USER ||--o{ SAVED_SEARCH : creates
+    USER ||--o{ COMPANY_WATCHLIST : monitors
+    
+    JOB ||--o{ APPLICATION : contains
+    JOB ||--o{ ALERT : triggers
+    JOB }o--|| LOCATION : located_at
+    
+    APPLICATION ||--o{ FOLLOW_UP : requires
+    
+    %% Many-to-Many Relationships (via Junction)
+    USER }o--o{ JOB : saves
+    USER }o--o{ SKILL : has
+    JOB }o--o{ SKILL : requires
+
+    %% USER Entity
+    USER {
+        ObjectId user_id PK
+        String name
+        String email UK
+        String password_hash
+        String phone
+        String city
+        Float latitude
+        Float longitude
+        String experience_level
+        String resume_url
+        Integer total_applications
+        Float response_rate
+        Date created_at
+        Date updated_at
+    }
+
+    %% JOB Entity
+    JOB {
+        ObjectId job_id PK
+        String title
+        String company
+        String description
+        ObjectId location_id FK
+        Integer salary_min
+        Integer salary_max
+        String experience_level
+        String job_type
+        String remote_type
+        String source
+        String source_url
+        Date posted_date
+        Date scraped_date
+        Boolean is_active
+        Float company_rating
+        Float ranking_score
+        Integer view_count
+        Date created_at
+    }
+
+    %% APPLICATION Entity
+    APPLICATION {
+        ObjectId application_id PK
+        ObjectId user_id FK
+        ObjectId job_id FK
+        String status
+        Date applied_date
+        Date last_status_update
+        Date next_followup_date
+        Boolean response_received
+        Date response_date
+        String notes
+        String resume_version
+        Date created_at
+        Date updated_at
+    }
+
+    %% SUBSCRIPTION Entity
+    SUBSCRIPTION {
+        ObjectId subscription_id PK
+        ObjectId user_id FK
+        String tier
+        Date start_date
+        Date end_date
+        String stripe_customer_id
+        String payment_status
+        Integer alerts_used
+        Integer alerts_limit
+        Integer exports_used
+        Integer exports_limit
+        Float match_threshold
+        Date created_at
+        Date updated_at
+    }
+
+    %% ALERT Entity
+    ALERT {
+        ObjectId alert_id PK
+        ObjectId user_id FK
+        ObjectId job_id FK
+        Float match_score
+        String type
+        String channel
+        Boolean is_read
+        Date sent_date
+        Date read_date
+        Date created_at
+    }
+
+    %% SAVED_SEARCH Entity
+    SAVED_SEARCH {
+        ObjectId search_id PK
+        ObjectId user_id FK
+        String name
+        String keywords
+        String location
+        Integer min_salary
+        Integer max_salary
+        String job_type
+        Boolean alert_enabled
+        Date last_run_date
+        Date created_at
+    }
+
+    %% COMPANY_WATCHLIST Entity
+    COMPANY_WATCHLIST {
+        ObjectId watchlist_id PK
+        ObjectId user_id FK
+        String company_name
+        Boolean alert_enabled
+        Integer current_openings
+        Date last_job_posted
+        Date added_date
+        Date created_at
+    }
+
+    %% FOLLOW_UP Entity
+    FOLLOW_UP {
+        ObjectId followup_id PK
+        ObjectId application_id FK
+        Date reminder_date
+        String reminder_type
+        Boolean completed
+        String notes
+        Date sent_date
+        Date created_at
+    }
+
+    %% SKILL Entity
+    SKILL {
+        ObjectId skill_id PK
+        String name UK
+        String category
+        Integer demand_count
+        Float avg_salary
+        String trend
+        Date created_at
+    }
+
+    %% LOCATION Entity
+    LOCATION {
+        ObjectId location_id PK
+        String city UK
+        String district
+        String state
+        Float latitude
+        Float longitude
+        Integer radius_km
+        Integer job_count
+        Date created_at
+    }

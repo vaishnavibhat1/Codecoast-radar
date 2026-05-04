@@ -1,0 +1,39 @@
+---
+config:
+  theme: default
+title: Dashboard Page Structure
+---
+graph LR
+    subgraph "Dashboard.jsx"
+        MAIN[Main Container]
+        
+        subgraph "Stats Section"
+            STAT1[Total Jobs<br/>500]
+            STAT2[New Today<br/>23]
+            STAT3[Saved Jobs<br/>12]
+            STAT4[Applications<br/>45]
+        end
+        
+        subgraph "Alerts Section"
+            ALERT_LIST[Recent Alerts<br/>Last 24 hours]
+            ALERT_ITEM[Alert Item<br/>Job + Match Score]
+        end
+        
+        subgraph "Quick Chart"
+            TREND_CHART[Weekly Trend<br/>Line Chart]
+        end
+        
+        subgraph "Quick Actions"
+            ACTION1[Browse Jobs →]
+            ACTION2[Track Application →]
+            ACTION3[View Analytics →]
+        end
+    end
+    
+    MAIN --> STAT1 & STAT2 & STAT3 & STAT4
+    MAIN --> ALERT_LIST
+    ALERT_LIST --> ALERT_ITEM
+    MAIN --> TREND_CHART
+    MAIN --> ACTION1 & ACTION2 & ACTION3
+    
+    style MAIN fill:#e3f2fd

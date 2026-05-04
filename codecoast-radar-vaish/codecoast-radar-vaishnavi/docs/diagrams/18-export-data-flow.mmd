@@ -1,0 +1,61 @@
+---
+config:
+  theme: default
+title: Export Data Flow
+---
+flowchart TD
+    USER[User Clicks Export<br/>Excel or CSV] --> CHECK_AUTH[Verify JWT Token<br/>Check Pro Tier]
+    
+    CHECK_AUTH --> RATE_LIMIT{Rate Limit Check<br/>10 exports/hour}
+    
+    RATE_LIMIT -->|Exceeded| ERROR[Return 429<br/>Too Many Requests]
+    RATE_LIMIT -->|OK| GET_FILTERS[Get Applied Filters<br/>Query Params]
+    
+    GET_FILTERS --> BUILD_QUERY[Build MongoDB Query<br/>skills, location, salary]
+    
+    BUILD_QUERY --> FETCH[Fetch Jobs<br/>MongoDB Query]
+    
+    FETCH --> FOUND{Jobs Found?}
+    
+    FOUND -->|No| EMPTY[Return Empty File<br/>With Headers]
+    FOUND -->|Yes| TRANSFORM[Transform Data<br/>Format for Export]
+    
+    TRANSFORM --> FLATTEN[Flatten Nested Fields<br/>location.city, salary.min]
+    FLATTEN --> SELECT[Select Columns<br/>Title, Company, Skills, Salary]
+    SELECT --> FORMAT_VALS[Format Values<br/>Arrays → CSV, Dates → String]
+    
+    FORMAT_VALS --> TYPE{Export Type}
+    
+    TYPE -->|Excel| CREATE_WORKBOOK[Create Excel Workbook<br/>ExcelJS Library]
+    TYPE -->|CSV| CREATE_CSV[Create CSV String<br/>Array → CSV]
+    
+    CREATE_WORKBOOK --> ADD_SHEET[Add Worksheet<br/>'Jobs']
+    ADD_SHEET --> ADD_HEADERS[Add Header Row<br/>Bold, Colors]
+    ADD_HEADERS --> ADD_ROWS[Add Data Rows<br/>Loop through Jobs]
+    ADD_ROWS --> STYLE[Apply Styling<br/>Borders, Alignment]
+    STYLE --> WB_BUFFER[Generate Buffer<br/>.xlsx Binary]
+    
+    CREATE_CSV --> CSV_HEADER[Add CSV Headers]
+    CSV_HEADER --> CSV_ROWS[Add CSV Rows<br/>Escape Special Chars]
+    CSV_ROWS --> CSV_STRING[Generate CSV String]
+    
+    WB_BUFFER --> SET_HEADERS[Set HTTP Headers<br/>Content-Type, Disposition]
+    CSV_STRING --> SET_HEADERS
+    
+    SET_HEADERS --> SEND[Send File<br/>res.send buffer]
+    
+    EMPTY --> SEND
+    ERROR --> SEND
+    
+    SEND --> LOG[Log Export<br/>User, Count, Type, Timestamp]
+    
+    LOG --> BROWSER[Browser Downloads File<br/>jobs-export-2026-02-20.xlsx]
+    
+    BROWSER --> USER_SAVES[User Saves File<br/>Local Storage]
+    
+    USER_SAVES --> END([End])
+    
+    style USER fill:#81c784
+    style TRANSFORM fill:#4ecdc4
+    style CREATE_WORKBOOK fill:#45b7d1
+    style BROWSER fill:#f9ca24

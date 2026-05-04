@@ -1,0 +1,74 @@
+---
+config:
+  theme: default
+title: Analytics Data Aggregation
+---
+flowchart TD
+    REQUEST[Analytics Page Load<br/>GET /api/tracker/analytics] --> AUTH[Verify JWT Token<br/>Extract userId]
+    
+    AUTH --> PARALLEL[Trigger Parallel Queries]
+    
+    PARALLEL --> Q1[Query 1<br/>Application Count by Status]
+    PARALLEL --> Q2[Query 2<br/>Application Timeline]
+    PARALLEL --> Q3[Query 3<br/>Response Rate Calculation]
+    PARALLEL --> Q4[Query 4<br/>Success Rate Calculation]
+    PARALLEL --> Q5[Query 5<br/>Average Response Time]
+    PARALLEL --> Q6[Query 6<br/>Monthly Trends]
+    PARALLEL --> Q7[Query 7<br/>Top Companies Applied]
+    
+    Q1 --> AGG1[MongoDB Aggregation<br/>$match + $group + $count]
+    Q2 --> AGG2[MongoDB Aggregation<br/>$sort by appliedDate]
+    Q3 --> AGG3[Calculate<br/>responseReceived / total]
+    Q4 --> AGG4[Calculate<br/>offers / interviews]
+    Q5 --> AGG5[Calculate<br/>avg responseDate - appliedDate]
+    Q6 --> AGG6[MongoDB Aggregation<br/>$group by month + status]
+    Q7 --> AGG7[MongoDB Aggregation<br/>$group by company + $count]
+    
+    AGG1 --> RESULT1[Status Breakdown<br/>applied: 20, interview: 8]
+    AGG2 --> RESULT2[Timeline Data<br/>Array of Applications]
+    AGG3 --> RESULT3[Response Rate<br/>67%]
+    AGG4 --> RESULT4[Success Rate<br/>25%]
+    AGG5 --> RESULT5[Avg Response Time<br/>7.3 days]
+    AGG6 --> RESULT6[Monthly Trends<br/>Time Series Data]
+    AGG7 --> RESULT7[Top Companies<br/>Wipro: 5, TCS: 3]
+    
+    RESULT1 --> COMBINE[Combine All Results]
+    RESULT2 --> COMBINE
+    RESULT3 --> COMBINE
+    RESULT4 --> COMBINE
+    RESULT5 --> COMBINE
+    RESULT6 --> COMBINE
+    RESULT7 --> COMBINE
+    
+    COMBINE --> FORMAT[Format Response<br/>JSON Structure]
+    
+    FORMAT --> CACHE[Cache Result<br/>5 minutes TTL]
+    
+    CACHE --> RETURN[Return to Client<br/>HTTP 200 OK]
+    
+    RETURN --> FRONTEND[Frontend Receives Data]
+    
+    FRONTEND --> RECHARTS[Pass to Recharts<br/>D3.js Wrapper]
+    
+    RECHARTS --> RENDER1[Render Bar Chart<br/>Status Breakdown]
+    RECHARTS --> RENDER2[Render Line Chart<br/>Timeline]
+    RECHARTS --> RENDER3[Render Pie Chart<br/>Companies]
+    RECHARTS --> RENDER4[Render Area Chart<br/>Monthly Trends]
+    RECHARTS --> RENDER5[Render Donut Chart<br/>Success/Response Rate]
+    
+    RENDER1 --> DISPLAY[Display Dashboard<br/>Interactive Charts]
+    RENDER2 --> DISPLAY
+    RENDER3 --> DISPLAY
+    RENDER4 --> DISPLAY
+    RENDER5 --> DISPLAY
+    
+    DISPLAY --> INSIGHTS[Generate Insights<br/>AI-powered Suggestions]
+    
+    INSIGHTS --> TIPS[Show Tips<br/>💡 Follow up on 3 applications]
+    
+    TIPS --> END([End])
+    
+    style PARALLEL fill:#ff6b6b
+    style COMBINE fill:#4ecdc4
+    style RECHARTS fill:#45b7d1
+    style DISPLAY fill:#81c784

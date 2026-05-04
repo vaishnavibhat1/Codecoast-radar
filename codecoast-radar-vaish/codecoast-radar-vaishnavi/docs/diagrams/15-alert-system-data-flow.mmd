@@ -1,0 +1,81 @@
+---
+config:
+  theme: default
+title: Alert System Data Flow
+---
+flowchart TD
+    TRIGGER[Alert System Trigger<br/>Every 5 minutes] --> GET_NEW[Get New Jobs<br/>Last 5 minutes]
+    
+    GET_NEW --> CHECK{New Jobs Found?}
+    
+    CHECK -->|No| SLEEP[Sleep 5 minutes]
+    CHECK -->|Yes| COUNT[Count: N new jobs]
+    
+    COUNT --> GET_USERS[Get All Active Users<br/>MongoDB Query]
+    
+    GET_USERS --> USER_LOOP[For Each User]
+    
+    USER_LOOP --> LOAD_PROFILE[Load User Profile<br/>Skills, Preferences, Subscription]
+    
+    LOAD_PROFILE --> MATCH_LOOP[For Each New Job]
+    
+    MATCH_LOOP --> RUN_MATCH[Run NLP Matcher<br/>Calculate Score]
+    
+    RUN_MATCH --> THRESHOLD{Score >= Threshold?}
+    
+    THRESHOLD -->|No| NEXT_JOB[Next Job]
+    THRESHOLD -->|Yes| CHECK_TIER{Subscription Tier}
+    
+    CHECK_TIER -->|Free| CHECK_QUOTA{Alerts < 50/week?}
+    CHECK_TIER -->|Pro| BUILD_ALERT
+    
+    CHECK_QUOTA -->|No| UPGRADE_EMAIL[Send Upgrade Email<br/>Quota Exceeded]
+    CHECK_QUOTA -->|Yes| CHECK_SCORE{Score}
+    
+    CHECK_SCORE -->|>= 92%| BUILD_ALERT[Build Alert Data]
+    CHECK_SCORE -->|80-91%| BUILD_EMAIL[Build Email Only]
+    CHECK_SCORE -->|< 80%| NEXT_JOB
+    
+    BUILD_ALERT --> ALERT_DATA[Alert Data<br/>Job, Match Score, User]
+    
+    ALERT_DATA --> MULTI_CHANNEL[Send Multi-Channel]
+    
+    MULTI_CHANNEL --> SOCKET[Socket.io<br/>Real-time Notification]
+    MULTI_CHANNEL --> EMAIL_INSTANT[Email<br/>Instant Alert]
+    MULTI_CHANNEL --> PUSH_CHECK{Pro User?}
+    
+    PUSH_CHECK -->|Yes| PUSH[Push Notification<br/>Mobile/Desktop]
+    PUSH_CHECK -->|No| INCREMENT
+    
+    SOCKET --> BROWSER[Browser Notification<br/>🚨 New Match: 94%]
+    EMAIL_INSTANT --> INBOX[Email Inbox<br/>Subject: New Job Match]
+    PUSH --> DEVICE[Mobile Device<br/>Push Alert]
+    
+    BUILD_EMAIL --> EMAIL_ONLY[Send Email Only<br/>No Real-time]
+    
+    BROWSER --> INCREMENT[Increment Alert Count<br/>User.subscription.alertsUsed++]
+    INBOX --> INCREMENT
+    DEVICE --> INCREMENT
+    EMAIL_ONLY --> INCREMENT
+    
+    INCREMENT --> UPDATE_DB[Update MongoDB<br/>Alert Count & Timestamp]
+    
+    UPGRADE_EMAIL --> NEXT_JOB
+    UPDATE_DB --> NEXT_JOB
+    
+    NEXT_JOB --> MORE_JOBS{More Jobs?}
+    MORE_JOBS -->|Yes| MATCH_LOOP
+    MORE_JOBS -->|No| NEXT_USER[Next User]
+    
+    NEXT_USER --> MORE_USERS{More Users?}
+    MORE_USERS -->|Yes| USER_LOOP
+    MORE_USERS -->|No| SUMMARY[Generate Summary<br/>Alerts Sent: 234<br/>Users Notified: 89]
+    
+    SUMMARY --> LOG[Log to Console + MongoDB]
+    LOG --> SLEEP
+    SLEEP --> TRIGGER
+    
+    style TRIGGER fill:#ff6b6b
+    style RUN_MATCH fill:#4ecdc4
+    style MULTI_CHANNEL fill:#f9ca24
+    style SUMMARY fill:#81c784

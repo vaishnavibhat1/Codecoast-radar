@@ -1,0 +1,57 @@
+---
+config:
+  theme: default
+title: Alert System Flow
+---
+flowchart TD
+    CRON[Cron Job<br/>Every 5 minutes] --> CHECK_JOBS[Check for New Jobs]
+    
+    CHECK_JOBS --> NEW_JOBS{New Jobs Found?}
+    NEW_JOBS -->|No| WAIT[Wait for Next Run]
+    NEW_JOBS -->|Yes| GET_USERS[Get All Active Users]
+    
+    GET_USERS --> LOOP[Loop Through Each User]
+    
+    LOOP --> MATCH[Match Jobs with User Profile<br/>Skills, Location, Preferences]
+    
+    MATCH --> SCORE[Calculate Match Score<br/>NLP Algorithm]
+    
+    SCORE --> THRESHOLD{Score >= Threshold?}
+    THRESHOLD -->|No| NEXT_USER[Next User]
+    THRESHOLD -->|Yes| CHECK_TIER{User Subscription Tier}
+    
+    CHECK_TIER -->|Free| CHECK_LIMIT{Alerts < 50/week?}
+    CHECK_TIER -->|Pro| SEND_ALERTS
+    
+    CHECK_LIMIT -->|No| UPGRADE_PROMPT[Send Upgrade Prompt]
+    CHECK_LIMIT -->|Yes| CHECK_MATCH{Match Score}
+    
+    CHECK_MATCH -->|>= 92%| SEND_ALERTS[Send Alerts]
+    CHECK_MATCH -->|>= 80%| SEND_EMAIL[Send Email Only]
+    CHECK_MATCH -->|< 80%| SKIP[Skip Alert]
+    
+    SEND_ALERTS --> EMAIL[Send Email Alert]
+    SEND_ALERTS --> SOCKET[Send Socket.io Alert<br/>Real-time Browser Notification]
+    SEND_ALERTS --> PUSH[Send Push Notification<br/>Pro Only]
+    
+    EMAIL --> INCREMENT[Increment Alert Count]
+    SOCKET --> INCREMENT
+    PUSH --> INCREMENT
+    SEND_EMAIL --> INCREMENT
+    
+    INCREMENT --> UPDATE_DB[Update User.subscription.alertsUsed]
+    UPDATE_DB --> NEXT_USER
+    
+    SKIP --> NEXT_USER
+    UPGRADE_PROMPT --> NEXT_USER
+    
+    NEXT_USER --> MORE{More Users?}
+    MORE -->|Yes| LOOP
+    MORE -->|No| DONE[Done]
+    DONE --> WAIT
+    
+    WAIT --> CRON
+    
+    style SEND_ALERTS fill:#ffd54f
+    style PUSH fill:#ba68c8
+    style UPGRADE_PROMPT fill:#ff7043

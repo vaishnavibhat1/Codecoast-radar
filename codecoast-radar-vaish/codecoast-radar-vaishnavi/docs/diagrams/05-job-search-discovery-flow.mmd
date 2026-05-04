@@ -1,0 +1,45 @@
+---
+config:
+  theme: default
+title: Job Search Discovery Flow
+---
+flowchart TD
+    DASHBOARD([Dashboard]) --> BROWSE[Browse Jobs Page]
+    
+    BROWSE --> FILTER[Apply Filters]
+    FILTER --> SELECT_SKILLS[Select Skills]
+    FILTER --> SELECT_LOC[Select Location]
+    FILTER --> SELECT_SAL[Set Salary Range]
+    FILTER --> SELECT_TYPE[Select Job Type]
+    
+    SELECT_SKILLS --> API_CALL[API: GET /api/jobs<br/>with filters]
+    SELECT_LOC --> API_CALL
+    SELECT_SAL --> API_CALL
+    SELECT_TYPE --> API_CALL
+    
+    API_CALL --> DISPLAY[Display Job List<br/>Sorted by Match Score]
+    
+    DISPLAY --> USER_ACTION{User Action}
+    
+    USER_ACTION -->|Click Job| VIEW_DETAILS[View Job Details]
+    USER_ACTION -->|Save Job| SAVE_JOB[API: POST /api/users/saved-jobs/:id]
+    USER_ACTION -->|Match Score| RUN_MATCH[API: POST /api/jobs/match<br/>NLP Matching]
+    
+    VIEW_DETAILS --> JOB_PAGE[Job Details Page<br/>Description, Skills, Salary]
+    JOB_PAGE --> APPLY_OPTIONS{Apply Options}
+    
+    APPLY_OPTIONS -->|Track Application| TRACK[Go to Tracker]
+    APPLY_OPTIONS -->|External| EXTERNAL[Open Source URL]
+    APPLY_OPTIONS -->|Save for Later| SAVE_JOB
+    
+    SAVE_JOB --> SAVED_CONF[Saved Jobs List]
+    SAVED_CONF --> BROWSE
+    
+    RUN_MATCH --> MATCH_RESULTS[Show Match Scores<br/>92% Wipro, 87% TCS]
+    MATCH_RESULTS --> DISPLAY
+    
+    TRACK --> TRACKER_PAGE([Application Tracker])
+    
+    style DASHBOARD fill:#81c784
+    style MATCH_RESULTS fill:#ffd54f
+    style EXTERNAL fill:#64b5f6

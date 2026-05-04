@@ -1,0 +1,59 @@
+---
+config:
+  theme: default
+title: CodeCoast Radar - Context Diagram (Level 0)
+---
+flowchart TB
+    USER([IT Professional])
+    ADMIN([System Admin])
+    NAUKRI[(Naukri.com)]
+    INDEED[(Indeed.com)]
+    LINKEDIN[(LinkedIn)]
+    STRIPE[(Stripe Payment)]
+    EMAIL[(Email Service)]
+    
+    SYSTEM[("0<br/>CodeCoast Radar<br/>Job Intelligence System")]
+    
+    %% User Interactions
+    USER -->|Registration Details| SYSTEM
+    USER -->|Login Credentials| SYSTEM
+    USER -->|Job Search Query| SYSTEM
+    USER -->|Application Data| SYSTEM
+    USER -->|Profile Updates| SYSTEM
+    USER -->|Subscription Request| SYSTEM
+    
+    SYSTEM -->|Job Matches| USER
+    SYSTEM -->|Job Alerts| USER
+    SYSTEM -->|Application Status| USER
+    SYSTEM -->|Analytics Reports| USER
+    SYSTEM -->|Subscription Status| USER
+    
+    %% Admin Interactions
+    ADMIN -->|Scraper Config| SYSTEM
+    SYSTEM -->|System Stats| ADMIN
+    
+    %% External Sources
+    NAUKRI -->|Job Listings| SYSTEM
+    INDEED -->|Job Listings| SYSTEM
+    LINKEDIN -->|Job Listings| SYSTEM
+    
+    SYSTEM -->|Scrape Request| NAUKRI
+    SYSTEM -->|Scrape Request| INDEED
+    SYSTEM -->|Scrape Request| LINKEDIN
+    
+    %% Payment Processing
+    SYSTEM -->|Payment Request| STRIPE
+    STRIPE -->|Payment Confirmation| SYSTEM
+    
+    %% Email Notifications
+    SYSTEM -->|Alert Emails| EMAIL
+    EMAIL -->|Email Delivery| USER
+    
+    style SYSTEM fill:#4CAF50,stroke:#2E7D32,stroke-width:4px,color:#fff
+    style USER fill:#2196F3,stroke:#1565C0,stroke-width:2px
+    style ADMIN fill:#FF9800,stroke:#E65100,stroke-width:2px
+    style NAUKRI fill:#e8eaf6,stroke:#3f51b5,stroke-width:2px
+    style INDEED fill:#e8eaf6,stroke:#3f51b5,stroke-width:2px
+    style LINKEDIN fill:#e8eaf6,stroke:#3f51b5,stroke-width:2px
+    style STRIPE fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style EMAIL fill:#fce4ec,stroke:#c2185b,stroke-width:2px

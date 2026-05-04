@@ -1,0 +1,75 @@
+---
+config:
+  theme: default
+title: Job Scraping Sequence
+---
+sequenceDiagram
+    actor Admin
+    participant CronJob
+    participant ScraperService
+    participant Puppeteer
+    participant LinkedIn
+    participant Indeed
+    participant MongoDB
+    participant AlertService
+    
+    %% Manual Scraping Trigger
+    Note over Admin,AlertService: Manual Scraping (Admin)
+    Admin->>ScraperService: POST /api/scraper/scrape
+    ScraperService->>Puppeteer: Launch headless browser
+    Puppeteer-->>ScraperService: Browser instance ready
+    
+    %% LinkedIn Scraping
+    ScraperService->>Puppeteer: Navigate to LinkedIn Jobs
+    Puppeteer->>LinkedIn: GET job listings page
+    LinkedIn-->>Puppeteer: HTML response
+    Puppeteer->>Puppeteer: Extract job cards
+    Puppeteer->>Puppeteer: Parse title, company, location, salary
+    Puppeteer-->>ScraperService: Return LinkedIn jobs array
+    
+    %% Indeed Scraping
+    ScraperService->>Puppeteer: Navigate to Indeed
+    Puppeteer->>Indeed: GET job listings page
+    Indeed-->>Puppeteer: HTML response
+    Puppeteer->>Puppeteer: Extract job cards
+    Puppeteer->>Puppeteer: Parse job details
+    Puppeteer-->>ScraperService: Return Indeed jobs array
+    
+    %% Save to Database
+    ScraperService->>ScraperService: Deduplicate jobs by URL
+    loop For each new job
+        ScraperService->>MongoDB: Check if job exists
+        MongoDB-->>ScraperService: Job not found
+        ScraperService->>MongoDB: Insert new job document
+        MongoDB-->>ScraperService: Job saved with _id
+    end
+    
+    ScraperService->>Puppeteer: Close browser
+    Puppeteer-->>ScraperService: Browser closed
+    ScraperService->>AlertService: Trigger matching for new jobs
+    ScraperService-->>Admin: 200 OK + scraping summary
+    
+    %% Automated Cron Scraping
+    Note over Admin,AlertService: Automated Scraping (Cron)
+    CronJob->>CronJob: Every 5 minutes
+    CronJob->>ScraperService: Trigger scraping
+    ScraperService->>Puppeteer: Launch browser
+    Puppeteer-->>ScraperService: Ready
+    
+    par LinkedIn and Indeed in parallel
+        ScraperService->>Puppeteer: Scrape LinkedIn
+        Puppeteer->>LinkedIn: Fetch jobs
+        LinkedIn-->>Puppeteer: Jobs data
+        Puppeteer-->>ScraperService: LinkedIn jobs
+    and
+        ScraperService->>Puppeteer: Scrape Indeed
+        Puppeteer->>Indeed: Fetch jobs
+        Indeed-->>Puppeteer: Jobs data
+        Puppeteer-->>ScraperService: Indeed jobs
+    end
+    
+    ScraperService->>MongoDB: Bulk insert new jobs
+    MongoDB-->>ScraperService: Inserted count
+    ScraperService->>AlertService: Notify new jobs available
+    AlertService->>AlertService: Start matching process
+    ScraperService-->>CronJob: Scraping completed

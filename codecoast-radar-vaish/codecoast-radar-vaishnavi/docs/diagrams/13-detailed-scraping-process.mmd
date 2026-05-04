@@ -1,0 +1,84 @@
+---
+config:
+  theme: default
+title: Detailed Scraping Process
+---
+flowchart TD
+    START[Cron Trigger<br/>Every Hour] --> INIT[Initialize Puppeteer<br/>Headless Chrome]
+    
+    INIT --> SOURCE{Select Source}
+    
+    SOURCE -->|Naukri| NAUKRI_URL[Navigate to Naukri<br/>Mangalore IT Jobs]
+    SOURCE -->|Indeed| INDEED_URL[Navigate to Indeed<br/>Mangalore IT Jobs]
+    SOURCE -->|LinkedIn| LINKEDIN_URL[Navigate to LinkedIn<br/>Mangalore IT Jobs]
+    
+    NAUKRI_URL --> LOAD1[Wait for Page Load<br/>Dynamic Content]
+    INDEED_URL --> LOAD2[Wait for Page Load<br/>Dynamic Content]
+    LINKEDIN_URL --> LOAD3[Wait for Page Load<br/>Dynamic Content]
+    
+    LOAD1 --> SCROLL1[Auto-scroll<br/>Load All Jobs]
+    LOAD2 --> SCROLL2[Auto-scroll<br/>Load All Jobs]
+    LOAD3 --> SCROLL3[Auto-scroll<br/>Load All Jobs]
+    
+    SCROLL1 --> EXTRACT_HTML1[Extract HTML]
+    SCROLL2 --> EXTRACT_HTML2[Extract HTML]
+    SCROLL3 --> EXTRACT_HTML3[Extract HTML]
+    
+    EXTRACT_HTML1 --> PARSE[Parse Job Cards]
+    EXTRACT_HTML2 --> PARSE
+    EXTRACT_HTML3 --> PARSE
+    
+    PARSE --> EXTRACT_FIELDS[Extract Fields<br/>CSS Selectors]
+    
+    EXTRACT_FIELDS --> FIELD_TITLE[.job-title → Title]
+    EXTRACT_FIELDS --> FIELD_COMPANY[.company-name → Company]
+    EXTRACT_FIELDS --> FIELD_LOC[.location → Location]
+    EXTRACT_FIELDS --> FIELD_SAL[.salary → Salary]
+    EXTRACT_FIELDS --> FIELD_DESC[.description → Description]
+    EXTRACT_FIELDS --> FIELD_URL[href → Source URL]
+    
+    FIELD_TITLE --> VALIDATE{All Fields Present?}
+    FIELD_COMPANY --> VALIDATE
+    FIELD_LOC --> VALIDATE
+    FIELD_SAL --> VALIDATE
+    FIELD_DESC --> VALIDATE
+    FIELD_URL --> VALIDATE
+    
+    VALIDATE -->|Missing Fields| SKIP[Skip Job<br/>Log Warning]
+    VALIDATE -->|Complete| PROCESS[Process Job Data]
+    
+    SKIP --> NEXT{More Jobs?}
+    
+    PROCESS --> CLEAN[Clean Data<br/>Trim, Normalize]
+    CLEAN --> GEOCODE[Geocode Location<br/>City → Coordinates]
+    GEOCODE --> NLP_EXTRACT[NLP Skill Extraction<br/>Natural.js Tokenizer]
+    
+    NLP_EXTRACT --> TOKENIZE[Tokenize Description<br/>Split into Words]
+    TOKENIZE --> STEM[Stem Words<br/>React, ReactJS → react]
+    STEM --> MATCH_SKILLS[Match Against Skill DB<br/>React, Node.js, Python...]
+    
+    MATCH_SKILLS --> CALC_SCORE[Calculate Job Score<br/>Recency + Salary + Rating]
+    
+    CALC_SCORE --> CHECK_DUP{Duplicate Check}
+    CHECK_DUP -->|Exists| UPDATE[Update Existing Job<br/>scrapedDate, score]
+    CHECK_DUP -->|New| INSERT[Insert New Job<br/>MongoDB]
+    
+    UPDATE --> EMIT_SOCKET[Emit Socket Event<br/>jobUpdated]
+    INSERT --> EMIT_SOCKET[Emit Socket Event<br/>newJob]
+    
+    EMIT_SOCKET --> NEXT
+    
+    NEXT -->|Yes| PARSE
+    NEXT -->|No| SUMMARY[Generate Summary<br/>Jobs Scraped: 127<br/>New: 23, Updated: 104]
+    
+    SUMMARY --> LOG[Log to Console<br/>+ Database]
+    LOG --> CLOSE[Close Puppeteer]
+    CLOSE --> TRIGGER_ALERTS[Trigger Alert System]
+    
+    TRIGGER_ALERTS --> END([End])
+    
+    style START fill:#ff6b6b
+    style NLP_EXTRACT fill:#4ecdc4
+    style CALC_SCORE fill:#45b7d1
+    style EMIT_SOCKET fill:#f9ca24
+    style END fill:#81c784

@@ -1,0 +1,96 @@
+---
+config:
+  theme: default
+title: Scraping to Alert Pipeline
+---
+flowchart LR
+    subgraph "External Sources"
+        NAUKRI[(Naukri.com)]
+        INDEED[(Indeed.com)]
+        LINKEDIN[(LinkedIn)]
+    end
+    
+    subgraph "Scraping Layer"
+        CRON[Cron Scheduler<br/>Every 1 hour]
+        PUPPETEER[Puppeteer<br/>Headless Browser]
+        PARSER[HTML Parser]
+    end
+    
+    subgraph "Processing Layer"
+        EXTRACT[Data Extraction<br/>Title, Company, Skills]
+        GEOCODE[Geocoding<br/>Location → Coordinates]
+        NLP[NLP Processing<br/>Natural.js<br/>Skill Extraction]
+        SCORE[Score Calculator]
+    end
+    
+    subgraph "Storage Layer"
+        MONGO[(MongoDB)]
+        JOB_COLLECTION[Jobs Collection]
+    end
+    
+    subgraph "Matching Layer"
+        MATCHER[Job Matcher]
+        USER_PROFILES[User Profiles]
+        PREFS[User Preferences]
+    end
+    
+    subgraph "Alert Layer"
+        THRESHOLD[Score Threshold<br/>Free: 80%<br/>Pro: 92%]
+        QUOTA[Alert Quota Check<br/>Free: 50/week]
+        NOTIFIER[Notification Service]
+    end
+    
+    subgraph "Delivery Layer"
+        SOCKET[Socket.io<br/>Browser Notification]
+        EMAIL[Nodemailer<br/>Email Alert]
+        PUSH[Push Service<br/>Pro Only]
+    end
+    
+    %% Scraping Flow
+    CRON -->|Triggers| PUPPETEER
+    PUPPETEER -->|Scrapes| NAUKRI
+    PUPPETEER -->|Scrapes| INDEED
+    PUPPETEER -->|Scrapes| LINKEDIN
+    
+    NAUKRI -->|HTML| PARSER
+    INDEED -->|HTML| PARSER
+    LINKEDIN -->|HTML| PARSER
+    
+    %% Processing Flow
+    PARSER -->|Raw Data| EXTRACT
+    EXTRACT -->|Location String| GEOCODE
+    EXTRACT -->|Description Text| NLP
+    
+    GEOCODE -->|Coordinates| SCORE
+    NLP -->|Extracted Skills| SCORE
+    EXTRACT -->|Salary, Date| SCORE
+    
+    %% Storage Flow
+    SCORE -->|Calculated Score| MONGO
+    MONGO --> JOB_COLLECTION
+    
+    %% Matching Flow
+    JOB_COLLECTION -->|New Jobs| MATCHER
+    USER_PROFILES -->|Skills, Experience| MATCHER
+    PREFS -->|Roles, Location, Salary| MATCHER
+    
+    MATCHER -->|Match Score| THRESHOLD
+    
+    %% Alert Flow
+    THRESHOLD -->|Passed| QUOTA
+    QUOTA -->|Within Limit| NOTIFIER
+    
+    %% Delivery Flow
+    NOTIFIER --> SOCKET
+    NOTIFIER --> EMAIL
+    NOTIFIER --> PUSH
+    
+    SOCKET -->|Real-time| USER[👤 User]
+    EMAIL -->|Daily Digest| USER
+    PUSH -->|Mobile| USER
+    
+    style CRON fill:#ff6b6b
+    style NLP fill:#4ecdc4
+    style MATCHER fill:#45b7d1
+    style NOTIFIER fill:#f9ca24
+    style USER fill:#81c784

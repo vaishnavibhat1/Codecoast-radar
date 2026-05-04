@@ -1,0 +1,69 @@
+---
+config:
+  theme: default
+title: User Authentication Sequence
+---
+sequenceDiagram
+    actor User
+    participant Browser
+    participant AuthService
+    participant Backend
+    participant MongoDB
+    participant JWT
+    
+    %% Registration Flow
+    Note over User,JWT: Registration Flow
+    User->>Browser: Navigate to /register
+    Browser->>User: Display Registration Form
+    User->>Browser: Enter name, email, password
+    Browser->>Backend: POST /api/auth/register
+    Backend->>MongoDB: Check if email exists
+    MongoDB-->>Backend: Email not found
+    Backend->>Backend: Hash password with bcrypt
+    Backend->>MongoDB: Create new user document
+    MongoDB-->>Backend: User created successfully
+    Backend->>JWT: Generate token with user._id
+    JWT-->>Backend: Return JWT token
+    Backend-->>Browser: 201 Created + {token, user}
+    Browser->>AuthService: Store token in localStorage
+    Browser->>Browser: Update Zustand authStore
+    Browser->>User: Redirect to /dashboard
+    
+    %% Login Flow
+    Note over User,JWT: Login Flow
+    User->>Browser: Navigate to /login
+    Browser->>User: Display Login Form
+    User->>Browser: Enter email & password
+    Browser->>Backend: POST /api/auth/login
+    Backend->>MongoDB: Find user by email
+    MongoDB-->>Backend: Return user document
+    Backend->>Backend: Compare password with bcrypt
+    alt Password valid
+        Backend->>JWT: Generate token with user._id
+        JWT-->>Backend: Return JWT token
+        Backend-->>Browser: 200 OK + {token, user}
+        Browser->>AuthService: Store token in localStorage
+        Browser->>Browser: Update Zustand authStore
+        Browser->>User: Redirect to /dashboard
+    else Password invalid
+        Backend-->>Browser: 401 Unauthorized
+        Browser->>User: Display error message
+    end
+    
+    %% Protected Route Access
+    Note over User,JWT: Protected Route Access
+    User->>Browser: Navigate to /api/jobs
+    Browser->>Backend: GET /api/jobs<br/>Header: Authorization Bearer token
+    Backend->>JWT: Verify token
+    alt Token valid
+        JWT-->>Backend: Decoded payload with user._id
+        Backend->>MongoDB: Fetch jobs with user context
+        MongoDB-->>Backend: Return jobs
+        Backend-->>Browser: 200 OK + jobs data
+        Browser->>User: Display jobs
+    else Token invalid/expired
+        JWT-->>Backend: Token verification failed
+        Backend-->>Browser: 401 Unauthorized
+        Browser->>AuthService: Clear token from localStorage
+        Browser->>User: Redirect to /login
+    end

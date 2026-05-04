@@ -1,0 +1,119 @@
+---
+config:
+  theme: default
+title: Analytics Dashboard Sequence
+---
+sequenceDiagram
+    actor User
+    participant AnalyticsPage
+    participant API
+    participant Backend
+    participant MongoDB
+    participant Aggregation
+    
+    %% Load Analytics Dashboard
+    Note over User,Aggregation: Load Analytics Dashboard
+    User->>AnalyticsPage: Navigate to /analytics
+    AnalyticsPage->>User: Show loading skeleton
+    
+    par Fetch all analytics in parallel
+        AnalyticsPage->>API: GET /api/analytics/applications-stats
+        API->>Backend: Request application stats
+        Backend->>Aggregation: Aggregate applications by status
+        Aggregation->>MongoDB: Pipeline:<br/>$match userId<br/>$group by status<br/>$count
+        MongoDB-->>Aggregation: Status counts
+        Aggregation-->>Backend: {Applied: 15, Interview: 5, ...}
+        Backend-->>API: 200 OK + stats
+        API-->>AnalyticsPage: Application stats
+    and
+        AnalyticsPage->>API: GET /api/analytics/hiring-trends
+        API->>Backend: Request trends
+        Backend->>Aggregation: Aggregate jobs by week
+        Aggregation->>MongoDB: Pipeline:<br/>$match last 3 months<br/>$group by week<br/>$count postings
+        MongoDB-->>Aggregation: Weekly counts
+        Aggregation-->>Backend: Time series data
+        Backend-->>API: 200 OK + trends
+        API-->>AnalyticsPage: Hiring trends
+    and
+        AnalyticsPage->>API: GET /api/analytics/top-companies
+        API->>Backend: Request company data
+        Backend->>Aggregation: Aggregate by company
+        Aggregation->>MongoDB: Pipeline:<br/>$group by company<br/>$count jobs<br/>$sort by count<br/>$limit 10
+        MongoDB-->>Aggregation: Top companies
+        Aggregation-->>Backend: Company rankings
+        Backend-->>API: 200 OK + companies
+        API-->>AnalyticsPage: Top companies
+    and
+        AnalyticsPage->>API: GET /api/analytics/salary-ranges
+        API->>Backend: Request salary data
+        Backend->>Aggregation: Aggregate salaries
+        Aggregation->>MongoDB: Pipeline:<br/>$match salary exists<br/>$group by range<br/>$count
+        MongoDB-->>Aggregation: Salary distribution
+        Aggregation-->>Backend: Range data
+        Backend-->>API: 200 OK + salaries
+        API-->>AnalyticsPage: Salary ranges
+    end
+    
+    AnalyticsPage->>AnalyticsPage: Render all charts
+    AnalyticsPage->>User: Display dashboard
+    
+    %% Filter Analytics
+    Note over User,Aggregation: Apply Time Filter
+    User->>AnalyticsPage: Select "Last 30 days"
+    AnalyticsPage->>API: GET /api/analytics/applications-stats?range=30d
+    API->>Backend: Request with date filter
+    Backend->>Aggregation: Add date filter to pipeline
+    Aggregation->>MongoDB: $match createdAt >= 30 days ago
+    MongoDB-->>Aggregation: Filtered results
+    Aggregation-->>Backend: Filtered stats
+    Backend-->>API: 200 OK + filtered data
+    API-->>AnalyticsPage: Update data
+    AnalyticsPage->>AnalyticsPage: Re-render charts
+    AnalyticsPage->>User: Display updated analytics
+    
+    %% Drill Down
+    Note over User,Aggregation: Drill Down on Company
+    User->>AnalyticsPage: Click company in chart
+    AnalyticsPage->>API: GET /api/analytics/company-details/:name
+    API->>Backend: Request company breakdown
+    Backend->>MongoDB: Find all jobs by company<br/>Find applications by company
+    MongoDB-->>Backend: Jobs + applications
+    Backend->>Backend: Calculate:<br/>- Total openings<br/>- Application rate<br/>- Response rate<br/>- Average time to interview
+    Backend-->>API: 200 OK + company metrics
+    API-->>AnalyticsPage: Company details
+    AnalyticsPage->>User: Show detailed modal
+    
+    %% Compare Periods
+    Note over User,Aggregation: Compare Time Periods
+    User->>AnalyticsPage: Select "Compare to previous period"
+    AnalyticsPage->>API: GET /api/analytics/compare?current=30d&previous=30d
+    API->>Backend: Request comparison
+    Backend->>Aggregation: Run two pipelines
+    
+    par Aggregate both periods
+        Aggregation->>MongoDB: Current period pipeline
+        MongoDB-->>Aggregation: Current stats
+    and
+        Aggregation->>MongoDB: Previous period pipeline
+        MongoDB-->>Aggregation: Previous stats
+    end
+    
+    Aggregation-->>Backend: Both datasets
+    Backend->>Backend: Calculate deltas:<br/>% change for each metric
+    Backend-->>API: 200 OK + comparison data
+    API-->>AnalyticsPage: Comparison results
+    AnalyticsPage->>User: Show trends with arrows
+    
+    %% Export Analytics
+    Note over User,Aggregation: Export Analytics Report
+    User->>AnalyticsPage: Click "Export Report"
+    AnalyticsPage->>API: GET /api/analytics/export?format=pdf
+    API->>Backend: Generate report
+    Backend->>Aggregation: Fetch all metrics
+    Aggregation->>MongoDB: Run all pipelines
+    MongoDB-->>Aggregation: Complete dataset
+    Aggregation-->>Backend: All analytics
+    Backend->>Backend: Generate PDF report
+    Backend-->>API: 200 OK + PDF blob
+    API-->>AnalyticsPage: PDF file
+    AnalyticsPage->>User: Download analytics.pdf

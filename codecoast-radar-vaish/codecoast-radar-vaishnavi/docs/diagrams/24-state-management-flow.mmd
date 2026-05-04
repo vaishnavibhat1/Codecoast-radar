@@ -1,0 +1,52 @@
+---
+config:
+  theme: default
+title: State Management Flow
+---
+graph LR
+    subgraph "Zustand Stores"
+        AUTH_STORE[authStore.js<br/>User, Token, Login/Logout]
+        SOCKET_STORE[socketStore.js<br/>Socket Connection, Events]
+    end
+    
+    subgraph "Components"
+        LOGIN_C[Login Component]
+        DASHBOARD_C[Dashboard Component]
+        JOBS_C[Jobs Component]
+        TRACKER_C[Tracker Component]
+    end
+    
+    subgraph "Utils"
+        API_UTIL[api.js<br/>Axios Instance + Interceptors]
+        SOCKET_CLIENT[Socket.io Client]
+    end
+    
+    subgraph "Backend"
+        BACKEND[Express API]
+        SOCKET_SERVER[Socket.io Server]
+    end
+    
+    %% State Flow
+    LOGIN_C -->|Login| AUTH_STORE
+    AUTH_STORE -->|Set Token| API_UTIL
+    API_UTIL -->|JWT Header| BACKEND
+    
+    DASHBOARD_C -->|Read User| AUTH_STORE
+    JOBS_C -->|Read Token| AUTH_STORE
+    TRACKER_C -->|Read User| AUTH_STORE
+    
+    %% Socket Flow
+    AUTH_STORE -->|Token| SOCKET_CLIENT
+    SOCKET_CLIENT <-->|Connect| SOCKET_SERVER
+    SOCKET_SERVER -->|Events| SOCKET_STORE
+    SOCKET_STORE -->|Notifications| DASHBOARD_C
+    SOCKET_STORE -->|Job Alerts| JOBS_C
+    
+    %% API Flow
+    JOBS_C -->|Fetch Jobs| API_UTIL
+    TRACKER_C -->|CRUD Apps| API_UTIL
+    API_UTIL <-->|HTTP| BACKEND
+    
+    style AUTH_STORE fill:#81c784
+    style SOCKET_STORE fill:#ffd54f
+    style API_UTIL fill:#64b5f6

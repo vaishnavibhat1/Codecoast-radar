@@ -1,0 +1,31 @@
+---
+config:
+  theme: default
+title: User Registration Flow
+---
+flowchart TD
+    START([User Visits Site]) --> LOGIN_CHECK{Has Account?}
+    LOGIN_CHECK -->|No| REGISTER[Register Page]
+    LOGIN_CHECK -->|Yes| LOGIN[Login Page]
+    
+    REGISTER --> FILL_REG[Fill Registration Form<br/>Name, Email, Password]
+    FILL_REG --> SUBMIT_REG[Submit Registration]
+    SUBMIT_REG --> CREATE_USER[Create User Account<br/>Hash Password]
+    CREATE_USER --> GEN_TOKEN[Generate JWT Token]
+    GEN_TOKEN --> PROFILE_SETUP[Setup Profile<br/>Skills, Experience, Location]
+    
+    LOGIN --> ENTER_CREDS[Enter Email & Password]
+    ENTER_CREDS --> VALIDATE[Validate Credentials]
+    VALIDATE -->|Invalid| ERROR1[Show Error]
+    ERROR1 --> LOGIN
+    VALIDATE -->|Valid| GEN_TOKEN2[Generate JWT Token]
+    GEN_TOKEN2 --> DASHBOARD
+    
+    PROFILE_SETUP --> SET_SKILLS[Add Skills<br/>React, Node.js, etc.]
+    SET_SKILLS --> SET_PREFS[Set Preferences<br/>Roles, Salary, Distance]
+    SET_PREFS --> SAVE_PROFILE[Save Profile to MongoDB]
+    SAVE_PROFILE --> DASHBOARD([Dashboard])
+    
+    style START fill:#e8f5e9
+    style DASHBOARD fill:#81c784
+    style ERROR1 fill:#ef5350

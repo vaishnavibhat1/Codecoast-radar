@@ -1,0 +1,71 @@
+---
+config:
+  theme: default
+title: Analytics Page Structure
+---
+graph TB
+    subgraph "Analytics.jsx"
+        CONTAINER[Page Container]
+        
+        subgraph "Overview Cards"
+            CARD1[Total Jobs<br/>500 • +23 today]
+            CARD2[Active Jobs<br/>450 • 90%]
+            CARD3[Avg Salary<br/>₹6.5L]
+            CARD4[Top Skill<br/>React • 89 jobs]
+        end
+        
+        subgraph "Main Charts Section"
+            subgraph "Row 1"
+                CHART1[Skill Demand<br/>Bar Chart<br/>Top 10 Skills]
+                CHART2[Salary Trends<br/>Line Chart<br/>Last 6 Months]
+            end
+            
+            subgraph "Row 2"
+                CHART3[Top Companies<br/>Pie Chart<br/>Hiring Distribution]
+                CHART4[Job Sources<br/>Donut Chart<br/>Naukri, Indeed, LinkedIn]
+            end
+            
+            subgraph "Row 3"
+                CHART5[Job Growth<br/>Area Chart<br/>Daily New Jobs]
+                CHART6[Experience Distribution<br/>Stacked Bar<br/>Fresher to 5+]
+            end
+        end
+        
+        subgraph "User Analytics (If Logged In)"
+            USER_TITLE[Your Application Stats]
+            
+            subgraph "User Charts"
+                USER_CHART1[Status Breakdown<br/>Donut Chart]
+                USER_CHART2[Application Timeline<br/>Line Chart]
+                USER_CHART3[Success Funnel<br/>Funnel Chart]
+            end
+            
+            subgraph "User Metrics"
+                METRIC1[Response Rate<br/>67%]
+                METRIC2[Success Rate<br/>25%]
+                METRIC3[Avg Response Time<br/>7.3 days]
+            end
+        end
+        
+        subgraph "Insights Panel"
+            INSIGHT1[📈 React jobs up 18%]
+            INSIGHT2[🏢 Wipro hiring spike]
+            INSIGHT3[💡 Follow up on 3 apps]
+            INSIGHT4[🎯 Your success rate is above avg]
+        end
+    end
+    
+    CONTAINER --> CARD1 & CARD2 & CARD3 & CARD4
+    CONTAINER --> CHART1 & CHART2
+    CONTAINER --> CHART3 & CHART4
+    CONTAINER --> CHART5 & CHART6
+    CONTAINER --> USER_TITLE
+    USER_TITLE --> USER_CHART1 & USER_CHART2 & USER_CHART3
+    USER_TITLE --> METRIC1 & METRIC2 & METRIC3
+    CONTAINER --> INSIGHT1 & INSIGHT2 & INSIGHT3 & INSIGHT4
+    
+    style CONTAINER fill:#f3e5f5
+    style INSIGHT1 fill:#81c784
+    style INSIGHT2 fill:#ffd54f
+    style INSIGHT3 fill:#64b5f6
+    style INSIGHT4 fill:#ba68c8

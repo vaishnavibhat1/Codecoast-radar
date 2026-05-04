@@ -1,0 +1,39 @@
+---
+config:
+  theme: default
+title: Shared Components Library
+---
+graph TD
+    SHARED[Shared Components]
+    
+    SHARED --> CARDS[Card Components]
+    SHARED --> FORMS[Form Components]
+    SHARED --> CHARTS[Chart Components]
+    SHARED --> UI[UI Elements]
+    
+    CARDS --> STAT_CARD[StatCard<br/>Icon, Value, Label]
+    CARDS --> JOB_CARD_C[JobCard<br/>Reusable Job Display]
+    CARDS --> APP_CARD_C[ApplicationCard<br/>Reusable App Display]
+    
+    FORMS --> INPUT[TextInput<br/>Validation + Error]
+    FORMS --> SELECT[SelectInput<br/>Dropdown]
+    FORMS --> MULTI[MultiSelect<br/>Skills, Tags]
+    FORMS --> SLIDER[RangeSlider<br/>Salary, Experience]
+    
+    CHARTS --> BAR_CHART[BarChart<br/>Recharts Wrapper]
+    CHARTS --> LINE_CHART[LineChart<br/>Recharts Wrapper]
+    CHARTS --> PIE_CHART[PieChart<br/>Recharts Wrapper]
+    CHARTS --> AREA_CHART[AreaChart<br/>Recharts Wrapper]
+    
+    UI --> BUTTON[Button<br/>Primary, Secondary, Danger]
+    UI --> BADGE[Badge<br/>Status, Match Score]
+    UI --> MODAL[Modal<br/>Overlay + Close]
+    UI --> LOADER[Loader<br/>Skeleton, Spinner]
+    UI --> TOAST[Toast<br/>react-hot-toast]
+    UI --> PAGINATION_C[Pagination<br/>Page Controls]
+    
+    style SHARED fill:#e1bee7
+    style CARDS fill:#81c784
+    style FORMS fill:#64b5f6
+    style CHARTS fill:#ffd54f
+    style UI fill:#ff8a65

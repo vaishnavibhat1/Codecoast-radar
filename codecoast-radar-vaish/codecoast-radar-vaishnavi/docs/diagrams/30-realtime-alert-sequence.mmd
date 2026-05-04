@@ -1,0 +1,96 @@
+---
+config:
+  theme: default
+title: Real-time Alert System Sequence
+---
+sequenceDiagram
+    actor User
+    participant Browser
+    participant SocketIO
+    participant Backend
+    participant AlertService
+    participant NLPMatcher
+    participant MongoDB
+    participant EmailService
+    
+    %% WebSocket Connection
+    Note over User,EmailService: Establish WebSocket Connection
+    User->>Browser: Open application
+    Browser->>SocketIO: Connect to socket.io
+    SocketIO->>Backend: Connection request
+    Backend->>Backend: Verify JWT token from handshake
+    Backend-->>SocketIO: Authentication successful
+    SocketIO-->>Browser: Connected event
+    Browser->>Browser: Subscribe to user channel
+    
+    %% New Job Alert Flow
+    Note over User,EmailService: New Job Matching Alert
+    AlertService->>AlertService: Cron triggers alert check
+    AlertService->>MongoDB: Get new jobs (last 5 min)
+    MongoDB-->>AlertService: New jobs array
+    AlertService->>MongoDB: Get all active users
+    MongoDB-->>AlertService: Users list
+    
+    loop For each user
+        AlertService->>NLPMatcher: Match jobs with user profile
+        NLPMatcher->>NLPMatcher: Calculate match scores
+        NLPMatcher-->>AlertService: Matched jobs with scores
+        
+        alt Match score >= 80%
+            AlertService->>MongoDB: Check subscription limits
+            MongoDB-->>AlertService: User tier & alert count
+            
+            alt User has alerts remaining
+                %% Create Alert
+                AlertService->>MongoDB: Create alert document
+                MongoDB-->>AlertService: Alert created
+                
+                %% Send Real-time Notification
+                AlertService->>SocketIO: Emit to user channel
+                SocketIO->>Browser: jobAlert event + job data
+                Browser->>Browser: Show toast notification
+                Browser->>User: Display alert popup
+                
+                %% Send Email
+                par Send Email in Background
+                    AlertService->>EmailService: Queue email job
+                    EmailService->>EmailService: Format email template
+                    EmailService->>EmailService: Send via SMTP
+                    EmailService-->>AlertService: Email sent
+                end
+                
+                %% Update Usage Counter
+                AlertService->>MongoDB: Increment alertsUsed
+                MongoDB-->>AlertService: Updated
+                
+            else Limit reached (Free tier)
+                AlertService->>SocketIO: Emit upgrade prompt
+                SocketIO->>Browser: upgradeRequired event
+                Browser->>User: Show upgrade modal
+            end
+        end
+    end
+    
+    %% User Interaction with Alert
+    Note over User,EmailService: User Interacts with Alert
+    User->>Browser: Click notification
+    Browser->>API: GET /api/jobs/:jobId
+    Backend->>MongoDB: Fetch job details
+    MongoDB-->>Backend: Job data
+    Backend-->>Browser: 200 OK + job
+    Browser->>User: Display job modal
+    
+    %% Mark Alert as Read
+    User->>Browser: Close notification
+    Browser->>SocketIO: Emit alertRead event
+    SocketIO->>Backend: Mark as read request
+    Backend->>MongoDB: updateOne(alertId)<br/>$set isRead: true
+    MongoDB-->>Backend: Updated
+    Backend-->>Browser: Confirmation
+    
+    %% Disconnect
+    Note over User,EmailService: User Closes Application
+    User->>Browser: Close tab/window
+    Browser->>SocketIO: Disconnect
+    SocketIO->>Backend: Handle disconnect
+    Backend->>Backend: Clean up user session

@@ -1,0 +1,79 @@
+---
+config:
+  theme: default
+title: NLP Matching Algorithm
+---
+flowchart TD
+    INPUT[New Job + User Profile] --> EXTRACT_USER[Extract User Data<br/>Skills, Experience, Location]
+    INPUT --> EXTRACT_JOB[Extract Job Data<br/>Required Skills, Description]
+    
+    EXTRACT_USER --> USER_SKILLS[User Skills<br/>React, Node.js, MongoDB]
+    EXTRACT_USER --> USER_EXP[User Experience<br/>1-3 years]
+    EXTRACT_USER --> USER_LOC[User Location<br/>Mangalore Coordinates]
+    EXTRACT_USER --> USER_PREFS[User Preferences<br/>Min Salary, Roles, Distance]
+    
+    EXTRACT_JOB --> JOB_SKILLS[Job Required Skills<br/>React, JavaScript, REST]
+    EXTRACT_JOB --> JOB_DESC[Job Description<br/>Full Text]
+    EXTRACT_JOB --> JOB_EXP[Job Experience<br/>1-2 years]
+    EXTRACT_JOB --> JOB_LOC[Job Location<br/>Mangalore Coordinates]
+    EXTRACT_JOB --> JOB_SAL[Job Salary<br/>₹5-8L]
+    
+    %% Skill Matching
+    USER_SKILLS --> TOKENIZE1[Tokenize & Stem<br/>Natural.js]
+    JOB_SKILLS --> TOKENIZE1
+    JOB_DESC --> TOKENIZE2[Extract Skills from Description<br/>NLP Pattern Matching]
+    
+    TOKENIZE2 --> COMBINE[Combine Explicit + Extracted Skills]
+    TOKENIZE1 --> COMBINE
+    
+    COMBINE --> SKILL_MATCH[Calculate Skill Match<br/>Jaccard Similarity]
+    
+    SKILL_MATCH --> SKILL_SCORE[Skill Score<br/>0-100]
+    
+    %% Experience Matching
+    USER_EXP --> EXP_MATCH[Experience Match<br/>Overlap Calculation]
+    JOB_EXP --> EXP_MATCH
+    
+    EXP_MATCH --> EXP_SCORE[Experience Score<br/>0-100]
+    
+    %% Location Matching
+    USER_LOC --> LOC_CALC[Calculate Distance<br/>Haversine Formula]
+    JOB_LOC --> LOC_CALC
+    USER_PREFS --> LOC_CALC
+    
+    LOC_CALC --> LOC_SCORE[Location Score<br/>100 - distance/maxDistance × 100]
+    
+    %% Salary Matching
+    USER_PREFS --> SAL_CHECK{Salary >= Min?}
+    JOB_SAL --> SAL_CHECK
+    
+    SAL_CHECK -->|Yes| SAL_SCORE[Salary Score<br/>100]
+    SAL_CHECK -->|No| SAL_SCORE2[Salary Score<br/>50]
+    
+    %% Weighted Average
+    SKILL_SCORE --> WEIGHTED[Weighted Average<br/>Match Score]
+    EXP_SCORE --> WEIGHTED
+    LOC_SCORE --> WEIGHTED
+    SAL_SCORE --> WEIGHTED
+    SAL_SCORE2 --> WEIGHTED
+    
+    WEIGHTED --> FORMULA[Score = <br/>Skill*0.4 +<br/>Experience*0.2 +<br/>Location*0.2 +<br/>Salary*0.2]
+    
+    FORMULA --> FINAL[Final Match Score<br/>0-100]
+    
+    FINAL --> TIER{User Tier}
+    
+    TIER -->|Free| FREE_ADJUST[Adjust Threshold<br/>80% minimum]
+    TIER -->|Pro| PRO_ADJUST[Adjust Threshold<br/>92% minimum]
+    
+    FREE_ADJUST --> RESULT[Match Result<br/>+ Breakdown]
+    PRO_ADJUST --> RESULT
+    
+    RESULT --> STORE[Store Match Score<br/>Cache for 24h]
+    
+    STORE --> RETURN([Return Match Score<br/>+ Explanation])
+    
+    style SKILL_MATCH fill:#4ecdc4
+    style WEIGHTED fill:#45b7d1
+    style FINAL fill:#f9ca24
+    style RETURN fill:#81c784

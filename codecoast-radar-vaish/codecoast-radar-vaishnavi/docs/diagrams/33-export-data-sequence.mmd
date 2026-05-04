@@ -1,0 +1,141 @@
+---
+config:
+  theme: default
+title: Data Export Sequence
+---
+sequenceDiagram
+    actor User
+    participant UI
+    participant API
+    participant Backend
+    participant MongoDB
+    participant ExcelJS
+    participant FileSystem
+    
+    %% Export Applications to Excel
+    Note over User,FileSystem: Export Applications to Excel
+    User->>UI: Click "Export Applications"
+    UI->>User: Show export modal:<br/>Format: Excel, CSV, PDF
+    User->>UI: Select "Excel" & click Export
+    UI->>API: POST /api/export/applications<br/>{format: "xlsx"}
+    API->>Backend: Export request
+    Backend->>Backend: Check subscription:<br/>Free: 10 exports/month<br/>Pro: Unlimited
+    
+    alt Quota available
+        Backend->>MongoDB: Find all user applications
+        MongoDB-->>Backend: Applications array
+        Backend->>ExcelJS: Create workbook
+        ExcelJS->>ExcelJS: Create worksheet "Applications"
+        ExcelJS->>ExcelJS: Add headers:<br/>Company, Role, Status, Date, Notes
+        
+        loop For each application
+            ExcelJS->>ExcelJS: Add row with data
+            ExcelJS->>ExcelJS: Apply formatting:<br/>Bold headers, borders
+        end
+        
+        ExcelJS->>ExcelJS: Add conditional formatting:<br/>Green: Accepted<br/>Yellow: Interview<br/>Red: Rejected
+        ExcelJS->>FileSystem: Write to temp file
+        FileSystem-->>ExcelJS: File created
+        ExcelJS-->>Backend: File buffer
+        Backend->>MongoDB: Increment exportCount
+        MongoDB-->>Backend: Updated
+        Backend-->>API: 200 OK + file blob
+        API-->>UI: Excel file
+        UI->>User: Download applications.xlsx
+    else Quota exceeded
+        Backend-->>API: 403 Forbidden:<br/>"Export limit reached"
+        API-->>UI: Error response
+        UI->>User: Show upgrade prompt
+    end
+    
+    %% Export Jobs to CSV
+    Note over User,FileSystem: Export Jobs to CSV
+    User->>UI: Navigate to /jobs
+    User->>UI: Click "Export to CSV"
+    UI->>API: POST /api/export/jobs<br/>{format: "csv", filters: {...}}
+    API->>Backend: Export with filters
+    Backend->>MongoDB: Find jobs matching filters
+    MongoDB-->>Backend: Filtered jobs
+    Backend->>Backend: Convert to CSV format
+    
+    loop For each job
+        Backend->>Backend: Format row:<br/>Title, Company, Location, Salary, URL
+        Backend->>Backend: Escape commas and quotes
+    end
+    
+    Backend->>Backend: Join rows with newlines
+    Backend-->>API: 200 OK + CSV string
+    API-->>UI: CSV file
+    UI->>User: Download jobs.csv
+    
+    %% Export Analytics Report to PDF
+    Note over User,FileSystem: Export Analytics Report to PDF
+    User->>UI: Navigate to /analytics
+    User->>UI: Click "Export Report"
+    UI->>User: Show format options
+    User->>UI: Select "PDF"
+    UI->>API: POST /api/export/analytics<br/>{format: "pdf"}
+    API->>Backend: Generate PDF report
+    
+    par Fetch all analytics data
+        Backend->>MongoDB: Aggregate application stats
+        MongoDB-->>Backend: Stats data
+    and
+        Backend->>MongoDB: Aggregate hiring trends
+        MongoDB-->>Backend: Trends data
+    and
+        Backend->>MongoDB: Get top companies
+        MongoDB-->>Backend: Companies data
+    end
+    
+    Backend->>Backend: Generate PDF using library
+    Backend->>Backend: Add header with logo
+    Backend->>Backend: Add charts as images
+    Backend->>Backend: Add data tables
+    Backend->>Backend: Add footer with date
+    Backend->>FileSystem: Save temp PDF
+    FileSystem-->>Backend: PDF buffer
+    Backend->>MongoDB: Log export activity
+    MongoDB-->>Backend: Logged
+    Backend-->>API: 200 OK + PDF blob
+    API-->>UI: PDF file
+    UI->>User: Download analytics-report.pdf
+    
+    %% Bulk Export All Data
+    Note over User,FileSystem: Export All Data (Pro Feature)
+    User->>UI: Click "Export All Data"
+    UI->>API: POST /api/export/bulk
+    API->>Backend: Bulk export request
+    Backend->>Backend: Verify Pro subscription
+    
+    alt Is Pro user
+        Backend->>Backend: Create ZIP archive
+        
+        par Export all collections
+            Backend->>MongoDB: Get applications
+            MongoDB-->>Backend: Applications
+            Backend->>ExcelJS: Create applications.xlsx
+        and
+            Backend->>MongoDB: Get saved jobs
+            MongoDB-->>Backend: Jobs
+            Backend->>ExcelJS: Create jobs.xlsx
+        and
+            Backend->>MongoDB: Get user profile
+            MongoDB-->>Backend: Profile
+            Backend->>ExcelJS: Create profile.json
+        and
+            Backend->>MongoDB: Get alerts history
+            MongoDB-->>Backend: Alerts
+            Backend->>ExcelJS: Create alerts.csv
+        end
+        
+        Backend->>FileSystem: Add all files to ZIP
+        FileSystem-->>Backend: ZIP buffer
+        Backend-->>API: 200 OK + ZIP blob
+        API-->>UI: ZIP file
+        UI->>User: Download codecoast-data.zip
+    else Not Pro user
+        Backend-->>API: 403 Forbidden:<br/>"Pro subscription required"
+        API-->>UI: Error
+        UI->>User: Show Pro upgrade modal
+    end

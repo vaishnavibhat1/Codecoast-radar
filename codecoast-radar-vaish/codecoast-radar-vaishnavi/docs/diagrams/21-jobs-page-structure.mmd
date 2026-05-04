@@ -1,0 +1,59 @@
+---
+config:
+  theme: default
+title: Jobs Page Structure
+---
+graph TB
+    subgraph "Jobs.jsx"
+        CONTAINER[Page Container]
+        
+        subgraph "Top Bar"
+            SEARCH[Search Input<br/>Title, Company]
+            EXPORT[Export Button<br/>Excel/CSV]
+            MATCH[Match Jobs<br/>AI Button]
+        end
+        
+        subgraph "Left Sidebar - Filters"
+            F1[Skills<br/>Multi-select Chips]
+            F2[Location<br/>City Dropdown]
+            F3[Salary Range<br/>Dual Sliders]
+            F4[Experience<br/>Range Select]
+            F5[Job Type<br/>Checkboxes]
+            F6[Company<br/>Search + Select]
+            F7[Source<br/>Naukri, Indeed, etc.]
+            CLEAR[Clear All Filters]
+        end
+        
+        subgraph "Main Content"
+            SORT[Sort By<br/>Score, Date, Salary]
+            COUNT[Results Count<br/>127 jobs found]
+            
+            subgraph "Job List"
+                CARD1[Job Card 1]
+                CARD2[Job Card 2]
+                CARD3[Job Card 3]
+                MORE[...]
+            end
+            
+            PAGINATION[Pagination<br/>Page 1 of 50]
+        end
+        
+        subgraph "Job Card"
+            TITLE[Title + Company<br/>Logo]
+            META[Location • Salary • Type]
+            SKILLS_TAG[Skills Tags<br/>React, Node.js]
+            MATCH_SCORE[Match Score<br/>92% Badge]
+            POSTED[Posted Date<br/>2 hours ago]
+            ACTIONS[Save / Track / View]
+        end
+    end
+    
+    CONTAINER --> SEARCH & EXPORT & MATCH
+    CONTAINER --> F1 & F2 & F3 & F4 & F5 & F6 & F7 & CLEAR
+    CONTAINER --> SORT & COUNT
+    CONTAINER --> CARD1 & CARD2 & CARD3 & MORE
+    CARD1 -.Example.-> TITLE & META & SKILLS_TAG & MATCH_SCORE & POSTED & ACTIONS
+    CONTAINER --> PAGINATION
+    
+    style CONTAINER fill:#fff9c4
+    style MATCH_SCORE fill:#81c784

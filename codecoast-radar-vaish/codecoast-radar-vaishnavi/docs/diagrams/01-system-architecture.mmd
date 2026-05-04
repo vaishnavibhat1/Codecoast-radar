@@ -1,0 +1,98 @@
+---
+config:
+  theme: default
+title: System Architecture
+---
+flowchart TD
+    %% Layer 1: External Services
+    NAUKRI[Naukri.com]
+    INDEED[Indeed.com]
+    LINKEDIN[LinkedIn]
+    
+    %% Layer 2: Frontend
+    REACT[React App<br/>Vite + Tailwind + Socket.io Client]
+    
+    %% Layer 3: Backend Server
+    EXPRESS[Express Server + Socket.io Server<br/>Node.js]
+    
+    %% Layer 4: Authentication & Core
+    AUTH[Authentication<br/>JWT Token]
+    
+    %% Layer 5: Core Business Logic
+    SCRAPER[Job Scraper<br/>Puppeteer]
+    JOBS[Jobs Management]
+    USERS[User Management]
+    TRACKER[Application Tracker]
+    
+    %% Layer 6: Features
+    MATCHING[NLP Job Matcher<br/>Natural.js]
+    ANALYTICS[Analytics & Insights]
+    ALERTS[Alert System<br/>Email + Push]
+    
+    %% Layer 7: Services
+    SUBSCRIPTIONS[Subscriptions<br/>Stripe Integration]
+    EXPORT[Data Export<br/>Excel/CSV]
+    
+    %% Layer 8: External Payment & Email
+    STRIPE[Stripe Payment Gateway]
+    EMAIL[Email Service]
+    
+    %% Layer 9: Data & Scheduling
+    MONGODB[(MongoDB Database)]
+    CRON[Cron Scheduler]
+    
+    %% Flow: External Sources → Scraper
+    NAUKRI -->|Job Listings| SCRAPER
+    INDEED -->|Job Listings| SCRAPER
+    LINKEDIN -->|Job Listings| SCRAPER
+    
+    %% Flow: Frontend ↔ Backend
+    REACT <-->|REST API + WebSocket| EXPRESS
+    
+    %% Flow: Backend → Auth
+    EXPRESS --> AUTH
+    
+    %% Flow: Auth → Business Logic
+    AUTH --> SCRAPER
+    AUTH --> JOBS
+    AUTH --> USERS
+    AUTH --> TRACKER
+    
+    %% Flow: Business Logic → Features
+    JOBS --> MATCHING
+    JOBS --> ANALYTICS
+    JOBS --> ALERTS
+    
+    %% Flow: Features → Services
+    TRACKER --> EXPORT
+    USERS --> SUBSCRIPTIONS
+    
+    %% Flow: Services → External
+    SUBSCRIPTIONS <-->|Payment Processing| STRIPE
+    ALERTS -->|Send Notifications| EMAIL
+    
+    %% Flow: All → Database
+    SCRAPER --> MONGODB
+    JOBS --> MONGODB
+    USERS --> MONGODB
+    TRACKER --> MONGODB
+    SUBSCRIPTIONS --> MONGODB
+    ANALYTICS --> MONGODB
+    
+    %% Flow: Scheduler
+    CRON -->|Trigger Jobs| SCRAPER
+    CRON -->|Alert Checks| ALERTS
+    
+    %% Real-time Updates
+    SCRAPER -.->|New Jobs| EXPRESS
+    ALERTS -.->|Notifications| EXPRESS
+    EXPRESS -.->|Live Updates| REACT
+
+    style REACT fill:#61dafb
+    style EXPRESS fill:#68a063
+    style MONGODB fill:#47a248
+    style SCRAPER fill:#ff6b6b
+    style MATCHING fill:#4ecdc4
+    style ALERTS fill:#f9ca24
+    style SUBSCRIPTIONS fill:#9b59b6
+    style CRON fill:#e67e22

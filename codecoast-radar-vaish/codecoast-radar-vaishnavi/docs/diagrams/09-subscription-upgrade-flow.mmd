@@ -1,0 +1,53 @@
+---
+config:
+  theme: default
+title: Subscription Upgrade Flow
+---
+flowchart TD
+    START([User on Free Tier]) --> TRIGGER{Upgrade Trigger}
+    
+    TRIGGER -->|Hit Alert Limit| LIMIT_MSG[Show: 50/50 alerts used]
+    TRIGGER -->|Want Phone Alerts| FEATURE_MSG[Pro Feature Required]
+    TRIGGER -->|Want Better Matching| ACCURACY_MSG[Pro: 92% vs Free: 80%]
+    TRIGGER -->|Manual| CLICK_UPGRADE[Click Upgrade Button]
+    
+    LIMIT_MSG --> UPGRADE_PAGE[Subscription Page]
+    FEATURE_MSG --> UPGRADE_PAGE
+    ACCURACY_MSG --> UPGRADE_PAGE
+    CLICK_UPGRADE --> UPGRADE_PAGE
+    
+    UPGRADE_PAGE --> PLANS[View Plans Comparison<br/>Free vs Pro]
+    
+    PLANS --> SELECT[Select Pro Plan<br/>₹199/month]
+    
+    SELECT --> API_CHECKOUT[API: POST /api/subscriptions/create-checkout]
+    
+    API_CHECKOUT --> STRIPE[Redirect to Stripe Checkout]
+    
+    STRIPE --> PAYMENT{Payment Action}
+    
+    PAYMENT -->|Enter Card Details| CARD_FORM[Stripe Card Form]
+    PAYMENT -->|Cancel| CANCEL[Return to Dashboard]
+    
+    CARD_FORM --> PROCESS[Process Payment]
+    
+    PROCESS --> SUCCESS{Payment Success?}
+    
+    SUCCESS -->|No| ERROR[Show Error Message]
+    ERROR --> STRIPE
+    
+    SUCCESS -->|Yes| WEBHOOK[Stripe Webhook<br/>POST /api/subscriptions/webhook]
+    
+    WEBHOOK --> UPDATE_SUB[Update User Subscription<br/>tier: 'pro'<br/>startDate, endDate<br/>stripeSubscriptionId]
+    
+    UPDATE_SUB --> RESET_LIMITS[Reset Alert Limits<br/>alertsUsed: 0]
+    
+    RESET_LIMITS --> SUCCESS_PAGE[Show Success Page<br/>Welcome to Pro! 🎉]
+    
+    SUCCESS_PAGE --> DASHBOARD([Dashboard<br/>Pro Features Unlocked])
+    
+    CANCEL --> DASHBOARD
+    
+    style SUCCESS_PAGE fill:#81c784
+    style ERROR fill:#ef5350
+    style DASHBOARD fill:#ffd54f

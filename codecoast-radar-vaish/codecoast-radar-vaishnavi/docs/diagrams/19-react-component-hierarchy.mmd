@@ -1,0 +1,93 @@
+---
+config:
+  theme: default
+title: React Component Hierarchy
+---
+graph TD
+    APP[App.jsx<br/>Root Component]
+    
+    APP --> ROUTER[React Router]
+    ROUTER --> AUTH_ROUTES[Public Routes]
+    ROUTER --> PROTECTED[Protected Routes]
+    
+    AUTH_ROUTES --> LOGIN[Login Page]
+    AUTH_ROUTES --> REGISTER[Register Page]
+    
+    PROTECTED --> LAYOUT[Layout Component<br/>Sidebar + Header]
+    
+    LAYOUT --> DASHBOARD[Dashboard Page]
+    LAYOUT --> JOBS[Jobs Page]
+    LAYOUT --> ANALYTICS[Analytics Page]
+    LAYOUT --> TRACKER[Tracker Page]
+    LAYOUT --> SUBSCRIPTION[Subscription Page]
+    LAYOUT --> PROFILE[Profile Page]
+    
+    %% Dashboard Components
+    DASHBOARD --> DASH_STATS[Stats Cards]
+    DASHBOARD --> DASH_ALERTS[Recent Alerts]
+    DASHBOARD --> DASH_CHART[Quick Analytics]
+    DASHBOARD --> DASH_ACTIONS[Quick Actions]
+    
+    %% Jobs Components
+    JOBS --> JOBS_FILTER[Filter Sidebar]
+    JOBS --> JOBS_LIST[Job List]
+    JOBS --> JOBS_PAGINATION[Pagination]
+    
+    JOBS_FILTER --> FILTER_SKILLS[Skills Filter]
+    JOBS_FILTER --> FILTER_LOCATION[Location Filter]
+    JOBS_FILTER --> FILTER_SALARY[Salary Range]
+    JOBS_FILTER --> FILTER_TYPE[Job Type]
+    
+    JOBS_LIST --> JOB_CARD[Job Card Component]
+    JOB_CARD --> MATCH_BADGE[Match Score Badge]
+    JOB_CARD --> SAVE_BTN[Save Button]
+    JOB_CARD --> TRACK_BTN[Track Application]
+    
+    %% Analytics Components
+    ANALYTICS --> ANALYTICS_OVERVIEW[Overview Cards]
+    ANALYTICS --> ANALYTICS_CHARTS[Charts Section]
+    ANALYTICS --> ANALYTICS_INSIGHTS[Insights Panel]
+    
+    ANALYTICS_CHARTS --> CHART_SKILLS[Skill Demand Chart]
+    ANALYTICS_CHARTS --> CHART_SALARY[Salary Trends]
+    ANALYTICS_CHARTS --> CHART_COMPANIES[Top Companies]
+    ANALYTICS_CHARTS --> CHART_TIMELINE[Application Timeline]
+    
+    %% Tracker Components
+    TRACKER --> TRACKER_HEADER[Header + Add Button]
+    TRACKER --> TRACKER_FILTERS[Status Filters]
+    TRACKER --> TRACKER_LIST[Applications List]
+    TRACKER --> TRACKER_MODAL[Add/Edit Modal]
+    
+    TRACKER_LIST --> APP_CARD[Application Card]
+    APP_CARD --> STATUS_BADGE[Status Badge]
+    APP_CARD --> ACTIONS_MENU[Actions Menu]
+    APP_CARD --> TIMELINE_VIEW[Status Timeline]
+    
+    %% Subscription Components
+    SUBSCRIPTION --> SUB_STATUS[Current Status Card]
+    SUBSCRIPTION --> SUB_PLANS[Plans Comparison]
+    SUBSCRIPTION --> SUB_USAGE[Usage Stats]
+    SUBSCRIPTION --> SUB_ACTIONS[Upgrade/Cancel Buttons]
+    
+    %% Profile Components
+    PROFILE --> PROFILE_INFO[Personal Info]
+    PROFILE --> PROFILE_SKILLS[Skills Management]
+    PROFILE --> PROFILE_PREFS[Preferences]
+    PROFILE --> PROFILE_RESUME[Resume Upload]
+    
+    %% Shared Components
+    LAYOUT --> SIDEBAR[Sidebar Navigation]
+    LAYOUT --> HEADER[Header Component]
+    
+    HEADER --> NOTIF_BELL[Notification Bell]
+    HEADER --> USER_MENU[User Menu Dropdown]
+    
+    style APP fill:#61dafb
+    style LAYOUT fill:#4fc3f7
+    style DASHBOARD fill:#81c784
+    style JOBS fill:#ffd54f
+    style ANALYTICS fill:#ba68c8
+    style TRACKER fill:#ff8a65
+    style SUBSCRIPTION fill:#7986cb
+    style PROFILE fill:#4db6ac

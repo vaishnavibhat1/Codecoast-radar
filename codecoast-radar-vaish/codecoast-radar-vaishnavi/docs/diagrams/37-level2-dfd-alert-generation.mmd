@@ -1,0 +1,70 @@
+---
+config:
+  theme: default
+title: CodeCoast Radar - Level 2 DFD (Alert Generation)
+---
+flowchart TB
+    %% External Entities
+    USER([IT Professional])
+    EMAIL_SVC[(Email Service)]
+    
+    %% Data Stores
+    USER_DB[("D1: User Database")]
+    JOB_DB[("D2: Job Database")]
+    SUB_DB[("D4: Subscription Database")]
+    ALERT_DB[("D5: Alert Database")]
+    
+    %% Level 2 Processes for Alert Generation (Process 4)
+    P4_1["4.1<br/>Detect New Jobs<br/>(Cron Every 5min)"]
+    P4_2["4.2<br/>Get Active Users<br/>& Preferences"]
+    P4_3["4.3<br/>Match Jobs<br/>to Users"]
+    P4_4["4.4<br/>Check Subscription<br/>Limits"]
+    P4_5["4.5<br/>Create Alert<br/>Records"]
+    P4_6["4.6<br/>Send Instant<br/>Notification"]
+    P4_7["4.7<br/>Queue Email<br/>Alert"]
+    P4_8["4.8<br/>Update Usage<br/>Counter"]
+    
+    %% Flow
+    P4_1 -->|New Job Check| JOB_DB
+    JOB_DB -->|Jobs Posted<br/>Last 5min| P4_1
+    
+    P4_1 -->|New Jobs List| P4_3
+    
+    P4_2 -->|Get Users| USER_DB
+    USER_DB -->|Active Users<br/>Skills, Prefs| P4_2
+    P4_2 -->|User List| P4_3
+    
+    P4_3 -->|Calculate Match| P4_3
+    P4_3 -->|Score >= 80%| P4_4
+    
+    P4_4 -->|Check Limit| SUB_DB
+    SUB_DB -->|Tier & Usage<br/>Free: 50/week<br/>Pro: Unlimited| P4_4
+    
+    P4_4 -->|Limit OK| P4_5
+    P4_4 -->|Limit Exceeded| USER
+    
+    P4_5 -->|Store Alert| ALERT_DB
+    P4_5 -->|Trigger Send| P4_6
+    P4_5 -->|Trigger Email| P4_7
+    
+    P4_6 -->|Socket.io Push<br/>Score 92%<br/>Wipro MERN| USER
+    
+    P4_7 -->|Email Request| EMAIL_SVC
+    EMAIL_SVC -->|Deliver Email| USER
+    
+    P4_6 -->|Sent Confirm| P4_8
+    P4_7 -->|Sent Confirm| P4_8
+    
+    P4_8 -->|Increment Count| SUB_DB
+    
+    %% Styling
+    style P4_1 fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style P4_2 fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style P4_3 fill:#f8bbd0,stroke:#ad1457,stroke-width:3px
+    style P4_4 fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style P4_5 fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style P4_6 fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style P4_7 fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style P4_8 fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    
+    style USER fill:#2196F3,stroke:#1565C0,stroke-width:2px

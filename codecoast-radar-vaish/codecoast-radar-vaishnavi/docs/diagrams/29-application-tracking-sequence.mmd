@@ -1,0 +1,99 @@
+---
+config:
+  theme: default
+title: Application Tracking Sequence
+---
+sequenceDiagram
+    actor User
+    participant TrackerPage
+    participant API
+    participant Backend
+    participant MongoDB
+    participant SocketIO
+    
+    %% Load Tracker Page
+    Note over User,SocketIO: Load Application Tracker
+    User->>TrackerPage: Navigate to /tracker
+    TrackerPage->>API: GET /api/tracker/applications
+    API->>Backend: Request with JWT token
+    Backend->>MongoDB: db.applications.find(userId)
+    MongoDB-->>Backend: User's applications
+    Backend-->>API: 200 OK + applications array
+    API-->>TrackerPage: Applications data
+    TrackerPage->>User: Display Kanban board
+    
+    %% Add New Application
+    Note over User,SocketIO: Add New Application
+    User->>TrackerPage: Click "Add Application"
+    TrackerPage->>User: Show form modal
+    User->>TrackerPage: Fill form:<br/>Company, Role, Date, Status
+    TrackerPage->>API: POST /api/tracker/applications
+    API->>Backend: Create application
+    Backend->>MongoDB: db.applications.insertOne()
+    MongoDB-->>Backend: Application created with _id
+    Backend->>Backend: Set initial status: "Applied"
+    Backend-->>API: 201 Created + application
+    API-->>TrackerPage: New application data
+    TrackerPage->>TrackerPage: Add to Kanban board
+    TrackerPage->>User: Show success notification
+    
+    %% Update Application Status
+    Note over User,SocketIO: Update Status (Drag & Drop)
+    User->>TrackerPage: Drag card to "Interview" column
+    TrackerPage->>API: PATCH /api/tracker/applications/:id
+    API->>Backend: {status: "Interview"}
+    Backend->>MongoDB: db.applications.findById(id)
+    MongoDB-->>Backend: Current application
+    Backend->>Backend: Validate status transition
+    alt Valid transition
+        Backend->>MongoDB: updateOne()<br/>$set status<br/>$push statusHistory
+        MongoDB-->>Backend: Application updated
+        Backend->>SocketIO: Emit application.updated event
+        SocketIO-->>TrackerPage: Real-time update
+        Backend-->>API: 200 OK + updated application
+        API-->>TrackerPage: Confirmation
+        TrackerPage->>User: Show in new column
+    else Invalid transition
+        Backend-->>API: 400 Bad Request
+        API-->>TrackerPage: Error message
+        TrackerPage->>TrackerPage: Revert drag
+        TrackerPage->>User: Show error notification
+    end
+    
+    %% Add Notes to Application
+    Note over User,SocketIO: Add Notes
+    User->>TrackerPage: Click "Add Note" on card
+    TrackerPage->>User: Show note input
+    User->>TrackerPage: Enter note text
+    TrackerPage->>API: POST /api/tracker/applications/:id/notes
+    API->>Backend: {note: "Interview scheduled"}
+    Backend->>MongoDB: updateOne()<br/>$push notes array
+    MongoDB-->>Backend: Note added
+    Backend-->>API: 200 OK
+    API-->>TrackerPage: Update local state
+    TrackerPage->>User: Display note on card
+    
+    %% View Application Details
+    Note over User,SocketIO: View Full Details
+    User->>TrackerPage: Click application card
+    TrackerPage->>API: GET /api/tracker/applications/:id
+    API->>Backend: Fetch single application
+    Backend->>MongoDB: db.applications.findById(id)
+    MongoDB-->>Backend: Application with full history
+    Backend-->>API: 200 OK + application
+    API-->>TrackerPage: Full data
+    TrackerPage->>User: Show detail modal:<br/>Timeline, Notes, Documents
+    
+    %% Delete Application
+    Note over User,SocketIO: Delete Application
+    User->>TrackerPage: Click "Delete" button
+    TrackerPage->>User: Show confirmation dialog
+    User->>TrackerPage: Confirm deletion
+    TrackerPage->>API: DELETE /api/tracker/applications/:id
+    API->>Backend: Delete request
+    Backend->>MongoDB: db.applications.deleteOne(id)
+    MongoDB-->>Backend: Deleted count: 1
+    Backend-->>API: 204 No Content
+    API-->>TrackerPage: Success
+    TrackerPage->>TrackerPage: Remove from Kanban
+    TrackerPage->>User: Show deletion confirmation

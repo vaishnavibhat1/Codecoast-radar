@@ -1,0 +1,76 @@
+---
+config:
+  theme: default
+title: Job Search and Discovery Sequence
+---
+sequenceDiagram
+    actor User
+    participant JobsPage
+    participant API
+    participant Backend
+    participant NLPMatcher
+    participant MongoDB
+    
+    %% Initial Page Load
+    Note over User,MongoDB: Initial Page Load
+    User->>JobsPage: Navigate to /jobs
+    JobsPage->>API: GET /api/jobs
+    API->>Backend: Request with JWT token
+    Backend->>MongoDB: db.jobs.find().sort(postedDate: -1)
+    MongoDB-->>Backend: Return all jobs (paginated)
+    Backend-->>API: 200 OK + jobs array
+    API-->>JobsPage: Jobs data
+    JobsPage->>User: Display job cards
+    
+    %% Apply Filters
+    Note over User,MongoDB: Apply Filters
+    User->>JobsPage: Select filters:<br/>Role, Location, Salary, Remote
+    JobsPage->>JobsPage: Update local state
+    JobsPage->>API: GET /api/jobs?role=Developer&location=Remote
+    API->>Backend: Request with query params
+    Backend->>MongoDB: db.jobs.find(query).sort()
+    MongoDB-->>Backend: Filtered jobs
+    Backend-->>API: 200 OK + filtered jobs
+    API-->>JobsPage: Update job list
+    JobsPage->>User: Display filtered results
+    
+    %% Search with NLP
+    Note over User,MongoDB: Search with NLP Matching
+    User->>JobsPage: Enter search: "React developer"
+    JobsPage->>API: POST /api/jobs/search<br/>{query: "React developer"}
+    API->>Backend: Search request
+    Backend->>NLPMatcher: Match query against user profile
+    NLPMatcher->>NLPMatcher: Tokenize query
+    NLPMatcher->>NLPMatcher: Extract keywords
+    NLPMatcher->>MongoDB: Get user skills & preferences
+    MongoDB-->>NLPMatcher: User profile data
+    NLPMatcher->>MongoDB: Find jobs matching keywords
+    MongoDB-->>NLPMatcher: Candidate jobs
+    NLPMatcher->>NLPMatcher: Calculate match scores
+    NLPMatcher-->>Backend: Ranked jobs with scores
+    Backend-->>API: 200 OK + matched jobs
+    API-->>JobsPage: Display results with match %
+    JobsPage->>User: Show ranked jobs
+    
+    %% View Job Details
+    Note over User,MongoDB: View Job Details
+    User->>JobsPage: Click job card
+    JobsPage->>API: GET /api/jobs/:id
+    API->>Backend: Fetch single job
+    Backend->>MongoDB: db.jobs.findById(id)
+    MongoDB-->>Backend: Job document
+    Backend-->>API: 200 OK + job details
+    API-->>JobsPage: Full job data
+    JobsPage->>User: Display job modal/page
+    
+    %% Save Job
+    Note over User,MongoDB: Save Job for Later
+    User->>JobsPage: Click "Save" button
+    JobsPage->>API: POST /api/jobs/:id/save
+    API->>Backend: Save job request
+    Backend->>MongoDB: db.users.updateOne()<br/>$addToSet savedJobs
+    MongoDB-->>Backend: User updated
+    Backend-->>API: 200 OK
+    API-->>JobsPage: Update UI state
+    JobsPage->>User: Show "Saved" confirmation
+

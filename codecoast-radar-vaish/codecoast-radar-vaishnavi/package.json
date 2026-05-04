@@ -1,0 +1,30 @@
+{
+  "name": "codecoast-radar",
+  "version": "1.0.0",
+  "description": "Real-time IT job intelligence platform for Mangalore and coastal Karnataka - All IT professionals",
+  "main": "index.js",
+  "scripts": {
+    "install:all": "npm run install:backend && npm run install:client",
+    "install:backend": "cd backend && npm install",
+    "install:client": "cd client && npm install",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:client\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "start": "cd backend && npm start",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "job",
+    "scraper",
+    "mangalore",
+    "react",
+    "nodejs",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

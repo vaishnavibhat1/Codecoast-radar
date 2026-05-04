@@ -1,0 +1,41 @@
+---
+config:
+  theme: default
+title: API Routes Overview
+---
+graph LR
+    CLIENT[Client]
+    
+    subgraph "Core Routes"
+        AUTH[/api/auth]
+        USERS[/api/users]
+        JOBS[/api/jobs]
+        SCRAPER[/api/scraper]
+    end
+    
+    subgraph "Feature Routes"
+        EXPORT[/api/export]
+    end
+    
+    subgraph "Service Routes"
+        ALERTS[/api/alerts]
+        SUBSCRIPTIONS[/api/subscriptions]
+        TRACKER[/api/tracker]
+    end
+    
+    CLIENT --> AUTH
+    CLIENT --> USERS
+    CLIENT --> JOBS
+    CLIENT --> SCRAPER
+    CLIENT --> EXPORT
+    CLIENT --> ALERTS
+    CLIENT --> SUBSCRIPTIONS
+    CLIENT --> TRACKER
+    
+    style AUTH fill:#ff6b6b
+    style USERS fill:#4ecdc4
+    style JOBS fill:#45b7d1
+    style ALERTS fill:#f9ca24
+    style SUBSCRIPTIONS fill:#6c5ce7
+    style TRACKER fill:#00b894
+    style EXPORT fill:#fdcb6e
